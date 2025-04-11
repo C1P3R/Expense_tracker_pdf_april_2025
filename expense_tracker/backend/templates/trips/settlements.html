@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Settlements for {{ trip.name }} - Trip Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-2">Settlements</h1>
+        <p class="text-muted">
+            <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}">{{ trip.name }}</a>
+            <i class="fas fa-calendar ms-3 me-1"></i>
+            {{ trip.start_date.strftime('%d %b %Y') }} - {{ trip.end_date.strftime('%d %b %Y') }}
+        </p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('trips.export_pdf', trip_id=trip.id) }}" class="btn btn-primary">
+            <i class="fas fa-file-pdf me-2"></i>Export as PDF
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Settlement Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This report shows the optimal way to settle all debts with the minimum number of transactions.
+                </div>
+                
+                {% if settlements %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for settlement in settlements %}
+                            <tr>
+                                <td>{{ user_map.get(settlement.from_user, 'Unknown') }}</td>
+                                <td>{{ user_map.get(settlement.to_user, 'Unknown') }}</td>
+                                <td class="text-end">₹{{ settlement.amount|round(2) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-4">
+                    <h4>Everyone is settled up!</h4>
+                    <p>There are no outstanding balances in this trip.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Individual Balances</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Participant</th>
+                                <th>Total Paid</th>
+                                <th>Total Share</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participant_id, balance in balances.items() %}
+                            <tr>
+                                <td>{{ user_map.get(participant_id, 'Unknown') }}</td>
+                                <td class="text-end">
+                                    {% set total_paid = trip.expenses.filter_by(payer_id=participant_id|int).with_entities(func.sum(Expense.amount)).scalar() or 0 %}
+                                    ₹{{ total_paid|round(2) }}
+                                </td>
+                                <td class="text-end">
+                                    {% set total_share = total_paid - balance %}
+                                    ₹{{ total_share|round(2) }}
+                                </td>
+                                <td class="text-end {% if balance > 0 %}text-success{% elif balance < 0 %}text-danger{% endif %}">
+                                    {% if balance > 0 %}
+                                    +₹{{ balance|round(2) }}
+                                    {% elif balance < 0 %}
+                                    -₹{{ (balance * -1)|round(2) }}
+                                    {% else %}
+                                    ₹0.00
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Expense Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Paid By</th>
+                                <th>Split Method</th>
+                                <th>Participants</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in trip.expenses.order_by(Expense.date.desc()).all() %}
+                            <tr>
+                                <td>{{ expense.date.strftime('%d %b %Y') }}</td>
+                                <td>{{ expense.description }}</td>
+                                <td class="text-end">₹{{ expense.amount|round(2) }}</td>
+                                <td>{{ user_map.get(expense.payer_id|string, 'Unknown') }}</td>
+                                <td>
+                                    {% if expense.split_method == 'equal' %}
+                                    Equal
+                                    {% elif expense.split_method == 'exact' %}
+                                    Exact
+                                    {% elif expense.split_method == 'itemized' %}
+                                    Itemized
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% for participant_id in expense.get_participants_list() %}
+                                    <span class="badge bg-primary me-1">{{ user_map.get(participant_id, 'Unknown') }}</span>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

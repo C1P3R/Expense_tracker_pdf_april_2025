@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Participants - {{ trip.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Manage Participants - {{ trip.name }}</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Add Registered Participant</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="action" value="add_registered">
+                <div class="form-group">
+                    <label for="email">User Email:</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Add Registered User</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Add Participant by Name</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="action" value="add_unregistered">
+                <div class="form-group">
+                    <label for="name">Participant Name:</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Add by Name</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Registered Participants</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for participant in participants %}
+                    <tr>
+                        <td>{{ participant.name }}</td>
+                        <td>{{ participant.email }}</td>
+                        <td>
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="action" value="remove_registered">
+                                <input type="hidden" name="user_id" value="{{ participant.id }}">
+                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center">No registered participants added yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>Unregistered Participants</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for name in unregistered_participants %}
+                    <tr>
+                        <td>{{ name }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#linkModal{{ loop.index }}">
+                                            Link to User
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <form method="POST">
+                                            <input type="hidden" name="action" value="remove_unregistered">
+                                            <input type="hidden" name="name" value="{{ name }}">
+                                            <button type="submit" class="dropdown-item text-danger">Remove</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Link Modal -->
+                            <div class="modal fade" id="linkModal{{ loop.index }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Link {{ name }} to User</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="POST">
+                                                <input type="hidden" name="action" value="link_participant">
+                                                <input type="hidden" name="name" value="{{ name }}">
+                                                <div class="form-group">
+                                                    <label for="email_link">User Email:</label>
+                                                    <input type="email" class="form-control" id="email_link" name="email" required>
+                                                </div>
+                                                <div class="mt-3 text-end">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Link User</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="2" class="text-center">No unregistered participants added yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}" class="btn btn-secondary">Back to Trip</a>
+    </div>
+</div>
+{% endblock %}

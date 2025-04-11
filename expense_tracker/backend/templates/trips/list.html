@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}My Trips - Trip Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-3">My Trips</h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('trips.add_trip') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Trip
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if trips %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for trip in trips %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}" class="text-decoration-none text-dark">
+                                {{ trip.name }}
+                            </a>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ trip.description|truncate(100) }}</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ trip.start_date.strftime('%d %b %Y') }} - {{ trip.end_date.strftime('%d %b %Y') }}
+                            </small>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-users me-1"></i>
+                                {{ trip.get_participants_list()|length + 1 }} participants
+                            </small>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary">
+                                <i class="fas fa-receipt me-1"></i>
+                                {{ trip.expenses.count() }} expenses
+                            </span>
+                            <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center p-5 bg-light rounded">
+            <h3 class="mb-3">No trips yet</h3>
+            <p class="mb-4">Start by creating your first trip to track expenses.</p>
+            <a href="{{ url_for('trips.add_trip') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create Trip
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

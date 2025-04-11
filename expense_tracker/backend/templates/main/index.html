@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Trip Expense Tracker - Welcome{% endblock %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col-md-6">
+        <h1 class="display-4 mb-4">Track Trip Expenses with Ease</h1>
+        <p class="lead">
+            Manage your trip expenses, split costs with friends, and settle up without the hassle.
+        </p>
+        <div class="mt-4">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-user-plus me-2"></i>Sign Up
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+            </a>
+        </div>
+    </div>
+    <div class="col-md-6 text-center">
+        <img src="{{ url_for('static', filename='img/trip-illustration.svg') }}" alt="Trip Expense Tracker" class="img-fluid" style="max-height: 400px;">
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-receipt fa-3x text-primary mb-3"></i>
+                <h3 class="card-title">Record Expenses</h3>
+                <p class="card-text">Easily record expenses during your trips with multiple splitting options.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                <h3 class="card-title">Group Management</h3>
+                <p class="card-text">Add friends to your trips and manage expenses together.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-file-invoice fa-3x text-primary mb-3"></i>
+                <h3 class="card-title">Settlement Reports</h3>
+                <p class="card-text">Generate settlement reports and export them as PDFs.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

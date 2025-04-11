@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Trip Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-3">Dashboard</h1>
+        <p class="lead">Welcome back, {{ current_user.name }}!</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('trips.add_trip') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Trip
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-wallet me-2"></i>Your Balance
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                {% if total_balance > 0 %}
+                <h3 class="text-success">₹{{ total_balance|round(2) }}</h3>
+                <p>You are owed money</p>
+                {% elif total_balance < 0 %}
+                <h3 class="text-danger">₹{{ (total_balance * -1)|round(2) }}</h3>
+                <p>You owe money</p>
+                {% else %}
+                <h3>₹0.00</h3>
+                <p>You're all settled up!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-suitcase me-2"></i>Recent Trips
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_trips %}
+                <div class="list-group list-group-flush">
+                    {% for trip in recent_trips %}
+                    <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ trip.name }}</h5>
+                            <small>{{ trip.start_date.strftime('%d %b %Y') }} - {{ trip.end_date.strftime('%d %b %Y') }}</small>
+                        </div>
+                        <p class="mb-1">{{ trip.description|truncate(100) }}</p>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center p-4">
+                    <p class="mb-0">You don't have any trips yet.</p>
+                    <a href="{{ url_for('trips.add_trip') }}" class="btn btn-sm btn-outline-primary mt-2">Create your first trip</a>
+                </div>
+                {% endif %}
+            </div>
+            {% if recent_trips %}
+            <div class="card-footer text-end">
+                <a href="{{ url_for('trips.list_trips') }}" class="btn btn-sm btn-outline-primary">View all trips</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if recent_expenses %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-receipt me-2"></i>Recent Expenses
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Trip</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Paid By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_expenses %}
+                            <tr>
+                                <td>{{ item.expense.date.strftime('%d %b %Y') }}</td>
+                                <td>
+                                    <a href="{{ url_for('trips.view_trip', trip_id=item.trip.id) }}">
+                                        {{ item.trip.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('expenses.view_expense', trip_id=item.trip.id, expense_id=item.expense.id) }}">
+                                        {{ item.expense.description }}
+                                    </a>
+                                </td>
+                                <td>₹{{ item.expense.amount|round(2) }}</td>
+                                <td>
+                                    {% if item.expense.payer_id == current_user.id %}
+                                    <span class="badge bg-primary">You</span>
+                                    {% else %}
+                                    {{ item.expense.payer.name }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
