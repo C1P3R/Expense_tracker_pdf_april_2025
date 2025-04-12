@@ -51,8 +51,9 @@ def add_expense(trip_id):
             split_method = request.form.get('split_method')
             selected_participants = request.form.getlist('participants')
             selected_unregistered = request.form.getlist('unregistered_participants')
+            category = request.form.get('category')
             
-            print(f"Form data: description={description}, amount={amount}, date={date_str}, split_method={split_method}")
+            print(f"Form data: description={description}, amount={amount}, date={date_str}, split_method={split_method}, category={category}")
             print(f"Selected participants: {selected_participants}")
             print(f"Selected unregistered: {selected_unregistered}")
             
@@ -95,7 +96,8 @@ def add_expense(trip_id):
                 date=date,
                 payer_id=payer_id,
                 trip_id=trip_id,
-                split_method=split_method
+                split_method=split_method,
+                category=category
             )
             
             # Store both registered and unregistered participants
@@ -445,6 +447,7 @@ def edit_expense(trip_id, expense_id):
         split_method = request.form.get('split_method')
         selected_participants = request.form.getlist('participants')
         selected_unregistered = request.form.getlist('unregistered_participants')
+        category = request.form.get('category')
         
         # Validate input
         if not description or not amount or not date_str or not split_method:
@@ -467,6 +470,7 @@ def edit_expense(trip_id, expense_id):
         expense.date = date
         expense.split_method = split_method
         expense.payer_id = payer_id
+        expense.category = category
         
         # Handle different split methods
         if split_method == 'equal':

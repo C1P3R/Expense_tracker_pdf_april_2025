@@ -39,6 +39,7 @@
                                 <th>Date</th>
                                 <th>Participant</th>
                                 <th>Description</th>
+                                <th>Linked Expense</th>
                                 <th>Amount</th>
                                 <th>Actions</th>
                             </tr>
@@ -58,6 +59,19 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ payment.description }}</td>
+                                <td>
+                                    {% if payment.expense_id %}
+                                        {% for expense in expenses %}
+                                            {% if expense.id|int == payment.expense_id|int %}
+                                                <a href="{{ url_for('expenses.view_expense', trip_id=trip.id, expense_id=expense.id) }}">
+                                                    {{ expense.description }}
+                                                </a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">None</span>
+                                    {% endif %}
+                                </td>
                                 <td class="text-end">₹{{ payment.amount|round(2) }}</td>
                                 <td>
                                     <div class="btn-group">
@@ -67,8 +81,6 @@
                                                 data-amount="{{ payment.amount }}"
                                                 data-description="{{ payment.description }}"
                                                 data-date="{{ payment.date }}"
-                                                data-event="{{ payment.event }}"
-                                                data-category="{{ payment.category }}"
                                                 data-expense-id="{{ payment.expense_id }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -138,24 +150,6 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="event" class="form-label">Event</label>
-                        <input type="text" class="form-control" id="event" name="event" placeholder="e.g., Hotel booking, Flight tickets">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="category" class="form-label">Category</label>
-                        <select class="form-select" id="category" name="category">
-                            <option value="Food">Food</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Accommodation">Accommodation</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Shopping">Shopping</option>
-                            <option value="Medical">Medical</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
                         <label for="amount" class="form-label">Amount</label>
                         <div class="input-group">
                             <span class="input-group-text">₹</span>
@@ -198,8 +192,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const amount = this.dataset.amount;
             const description = this.dataset.description;
             const date = this.dataset.date;
-            const event = this.dataset.event;
-            const category = this.dataset.category;
             const expenseId = this.dataset.expenseId;
 
             // Fill the form with existing data
@@ -207,8 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('amount').value = amount;
             document.getElementById('description').value = description;
             document.getElementById('date').value = date;
-            document.getElementById('event').value = event;
-            document.getElementById('category').value = category;
             document.getElementById('expense_id').value = expenseId;
 
             // Add hidden inputs for edit action

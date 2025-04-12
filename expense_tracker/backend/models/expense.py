@@ -7,6 +7,7 @@ class Expense(db.Model):
     description = db.Column(db.String(200), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(3), default='INR')
+    category = db.Column(db.String(50), nullable=True)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
