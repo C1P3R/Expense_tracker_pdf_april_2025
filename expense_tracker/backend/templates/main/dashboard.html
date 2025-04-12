@@ -111,10 +111,14 @@
                                 </td>
                                 <td>₹{{ item.expense.amount|round(2) }}</td>
                                 <td>
-                                    {% if item.expense.payer_id == current_user.id %}
+                                    {% if item.expense.payer_id|string == current_user.id|string %}
                                     <span class="badge bg-primary">You</span>
                                     {% else %}
-                                    {{ item.expense.payer.name }}
+                                    {% if item.expense.payer_id|string and (item.expense.payer_id|string).startswith('unregistered_') %}
+                                        {{ (item.expense.payer_id|string).replace('unregistered_', '') }} (Unregistered)
+                                    {% else %}
+                                        {{ item.payer_name if item.payer_name else "Unknown" }}
+                                    {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
