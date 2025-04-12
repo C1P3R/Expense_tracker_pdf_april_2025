@@ -16,6 +16,9 @@
     </div>
     <div class="col-md-4 text-end">
         <div class="btn-group">
+            <a href="{{ url_for('expenses.list_expenses', trip_id=trip.id) }}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-list me-2"></i>Expenses
+            </a>
             <a href="{{ url_for('expenses.add_expense', trip_id=trip.id) }}" class="btn btn-primary">
                 <i class="fas fa-plus me-2"></i>Add Expense
             </a>
