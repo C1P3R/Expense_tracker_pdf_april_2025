@@ -200,35 +200,54 @@
                     <i class="fas fa-check-circle me-2"></i>
                     This expense was split by items consumed by each participant.
                 </div>
-                {% for item in expense.items %}
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">{{ item.name }}</h6>
-                            <span class="badge bg-primary">₹{{ item.price|round(2) }}</span>
+                {% if items %}
+                    {% for item in items %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">{{ item.name|default('Unnamed Item') }}</h6>
+                                <span class="badge bg-primary">₹{{ item.price|default(0)|round(2) }}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Consumed by:</strong></p>
-                        <div>
-                            {% for user_id in item.participants %}
-                            <span class="badge bg-secondary me-1 mb-1">
-                                {% if user_id|int == current_user.id %}
-                                You
-                                {% else %}
-                                {{ user_map.get(user_id|string, 'Unknown') }}
+                        <div class="card-body">
+                            <p><strong>Consumed by:</strong></p>
+                            <div>
+                                {% if item.participants %}
+                                    {% for user_id in item.participants %}
+                                    <span class="badge bg-secondary me-1 mb-1">
+                                        {% if user_id|int == current_user.id %}
+                                        You
+                                        {% else %}
+                                        {{ user_map.get(user_id|string, 'Unknown') }}
+                                        {% endif %}
+                                    </span>
+                                    {% endfor %}
                                 {% endif %}
-                            </span>
-                            {% endfor %}
+                                
+                                {% if item.unregistered %}
+                                    {% for name in item.unregistered %}
+                                    <span class="badge bg-info me-1 mb-1">
+                                        {{ name }} (Unregistered)
+                                    </span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            {% if item.price is defined and item.price and item.participants|default([])|length > 0 %}
+                            <p class="mt-2 mb-0">
+                                <small class="text-muted">
+                                    Each person's share: ₹{{ (item.price / (item.participants|default([])|length + item.unregistered|default([])|length))|round(2) }}
+                                </small>
+                            </p>
+                            {% endif %}
                         </div>
-                        <p class="mt-2 mb-0">
-                            <small class="text-muted">
-                                Each person's share: ₹{{ (item.price / item.participants|length)|round(2) }}
-                            </small>
-                        </p>
                     </div>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No item details found for this itemized expense.
+                    </div>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -285,22 +304,29 @@
 </div>
 
 <!-- Delete Expense Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Delete Expense</h5>
+                <h5 class="modal-title" id="deleteModalLabel">Delete Expense</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete this expense?</p>
-                <p><strong>Description:</strong> {{ expense.description }}</p>
-                <p><strong>Amount:</strong> ₹{{ expense.amount|round(2) }}</p>
+                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+                <p><strong>Expense Details:</strong></p>
+                <ul>
+                    <li>Description: {{ expense.description }}</li>
+                    <li>Amount: ₹{{ expense.amount|round(2) }}</li>
+                    <li>Date: {{ expense.date.strftime('%d %b %Y') }}</li>
+                </ul>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST">
-                    <button type="submit" class="btn btn-danger">Delete</button>
+                <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete Expense
+                    </button>
                 </form>
             </div>
         </div>

@@ -20,21 +20,22 @@ else:
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
-# List all tables
-print("\nTables in the database:")
+# Get list of tables
 cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
 tables = cursor.fetchall()
+
+print("Tables in database:")
 for table in tables:
     print(f"- {table[0]}")
-
-# For each table, show its structure
-for table in tables:
-    table_name = table[0]
-    print(f"\nStructure of table '{table_name}':")
-    cursor.execute(f"PRAGMA table_info({table_name})")
-    columns = cursor.fetchall()
-    for column in columns:
-        print(f"  {column[1]} ({column[2]})")
+    
+    # If there are tables, show their schema
+    if tables:
+        cursor.execute(f"PRAGMA table_info({table[0]})")
+        columns = cursor.fetchall()
+        print(f"  Columns in {table[0]}:")
+        for col in columns:
+            print(f"  - {col[1]} ({col[2]})")
+        print()
 
 # Close the connection
 conn.close()

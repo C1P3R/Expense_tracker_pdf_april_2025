@@ -39,6 +39,7 @@
                                 <th>Date</th>
                                 <th>Participant</th>
                                 <th>Description</th>
+                                <th>Linked Expense</th>
                                 <th>Amount</th>
                                 <th>Actions</th>
                             </tr>
@@ -58,6 +59,19 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ payment.description }}</td>
+                                <td>
+                                    {% if payment.expense_id %}
+                                        {% for expense in expenses %}
+                                            {% if expense.id|int == payment.expense_id|int %}
+                                                <a href="{{ url_for('expenses.view_expense', trip_id=trip.id, expense_id=expense.id) }}">
+                                                    {{ expense.description }}
+                                                </a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">None</span>
+                                    {% endif %}
+                                </td>
                                 <td class="text-end">₹{{ payment.amount|round(2) }}</td>
                                 <td>
                                     <div class="btn-group">
@@ -66,7 +80,8 @@
                                                 data-participant-id="{{ payment.id }}"
                                                 data-amount="{{ payment.amount }}"
                                                 data-description="{{ payment.description }}"
-                                                data-date="{{ payment.date }}">
+                                                data-date="{{ payment.date }}"
+                                                data-expense-id="{{ payment.expense_id }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger delete-payment" 
@@ -125,6 +140,16 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label for="expense_id" class="form-label">Linked Expense</label>
+                        <select class="form-select" id="expense_id" name="expense_id">
+                            <option value="">Select expense</option>
+                            {% for expense in expenses %}
+                            <option value="{{ expense.id }}">{{ expense.description }} (₹{{ expense.amount }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label for="amount" class="form-label">Amount</label>
                         <div class="input-group">
                             <span class="input-group-text">₹</span>
@@ -141,6 +166,110 @@
                         <i class="fas fa-plus me-2"></i>Add Payment
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expense Summary Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">Expense Summary by Category</h5>
+            </div>
+            <div class="card-body">
+                {% if expense_summary %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Category</th>
+                                <th>Count</th>
+                                <th class="text-end">Total Amount</th>
+                                <th class="text-end">Average</th>
+                                <th class="text-end">% of Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in expense_summary %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold">{{ category.category }}</span>
+                                </td>
+                                <td>{{ category.count }}</td>
+                                <td class="text-end">₹{{ category.total|round(2) }}</td>
+                                <td class="text-end">₹{{ (category.total / category.count)|round(2) }}</td>
+                                <td class="text-end">{{ ((category.total / total_expense_amount) * 100)|round(1) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-primary">
+                            <tr>
+                                <th>Total</th>
+                                <th>{{ total_expense_count }}</th>
+                                <th class="text-end">₹{{ total_expense_amount|round(2) }}</th>
+                                <th class="text-end">₹{{ (total_expense_amount / total_expense_count)|round(2) }}</th>
+                                <th class="text-end">100%</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center">No expenses recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- General Payment Summary Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">General Payment Summary by Category</h5>
+            </div>
+            <div class="card-body">
+                {% if payment_summary %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Category</th>
+                                <th>Count</th>
+                                <th class="text-end">Total Amount</th>
+                                <th class="text-end">Average</th>
+                                <th class="text-end">% of Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in payment_summary %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold">{{ category.category }}</span>
+                                </td>
+                                <td>{{ category.count }}</td>
+                                <td class="text-end">₹{{ category.total|round(2) }}</td>
+                                <td class="text-end">₹{{ (category.total / category.count)|round(2) }}</td>
+                                <td class="text-end">{{ ((category.total / total_payment_amount) * 100)|round(1) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-success">
+                            <tr>
+                                <th>Total</th>
+                                <th>{{ total_payment_count }}</th>
+                                <th class="text-end">₹{{ total_payment_amount|round(2) }}</th>
+                                <th class="text-end">{% if total_payment_count > 0 %}₹{{ (total_payment_amount / total_payment_count)|round(2) }}{% else %}₹0.00{% endif %}</th>
+                                <th class="text-end">100%</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center">No general payments recorded yet.</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -167,12 +296,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const amount = this.dataset.amount;
             const description = this.dataset.description;
             const date = this.dataset.date;
+            const expenseId = this.dataset.expenseId;
 
             // Fill the form with existing data
             document.getElementById('participant_id').value = participantId;
             document.getElementById('amount').value = amount;
             document.getElementById('description').value = description;
             document.getElementById('date').value = date;
+            document.getElementById('expense_id').value = expenseId;
 
             // Add hidden inputs for edit action
             const form = document.querySelector('form');

@@ -513,6 +513,104 @@ def manage_payments(trip_id):
     # Get current payments
     payments = trip.get_general_payments()
     
+    # Get all expenses for this trip
+    expenses = trip.expenses.all()
+    
+    # Calculate expense summary by category
+    expense_summary = {}
+    for expense in expenses:
+        category = expense.category or 'Uncategorized'
+        if category not in expense_summary:
+            expense_summary[category] = {
+                'count': 0,
+                'total': 0
+            }
+        expense_summary[category]['count'] += 1
+        expense_summary[category]['total'] += expense.amount
+    
+    # Convert to sorted list for display
+    expense_summary_list = [
+        {
+            'category': category,
+            'count': data['count'],
+            'total': data['total']
+        }
+        for category, data in expense_summary.items()
+    ]
+    
+    # Sort by total amount (highest first)
+    expense_summary_list.sort(key=lambda x: x['total'], reverse=True)
+    
+    # Calculate overall totals
+    total_expense_count = sum(item['count'] for item in expense_summary_list)
+    total_expense_amount = sum(item['total'] for item in expense_summary_list)
+    
+    # Calculate general payment summary by extracting categories from descriptions
+    payment_summary = {}
+    
+    # Format payments for display and calculate summary
+    formatted_payments = []
+    for payment in payments:
+        participant_id = payment['participant_id']
+        payment_amount = payment['amount']
+        description = payment['description']
+        
+        # Extract payment category from description (use first word or 'Miscellaneous')
+        category = description.split()[0].capitalize() if description else 'Miscellaneous'
+        
+        # Add to payment summary
+        if category not in payment_summary:
+            payment_summary[category] = {
+                'count': 0,
+                'total': 0
+            }
+        payment_summary[category]['count'] += 1
+        payment_summary[category]['total'] += payment_amount
+        
+        # Format the payment for display
+        if participant_id.startswith('unregistered_'):
+            name = participant_id.replace('unregistered_', '')
+            formatted_payments.append({
+                'id': participant_id,
+                'name': name,
+                'type': 'unregistered',
+                'amount': payment_amount,
+                'description': description,
+                'date': payment['date'],
+                'expense_id': payment['expense_id']
+            })
+        elif participant_id in registered_map:
+            user = registered_map[participant_id]
+            formatted_payments.append({
+                'id': participant_id,
+                'name': user.name,
+                'type': 'registered',
+                'amount': payment_amount,
+                'description': description,
+                'date': payment['date'],
+                'expense_id': payment['expense_id']
+            })
+    
+    # Convert payment summary to sorted list for display
+    payment_summary_list = [
+        {
+            'category': category,
+            'count': data['count'],
+            'total': data['total']
+        }
+        for category, data in payment_summary.items()
+    ]
+    
+    # Sort by total amount (highest first)
+    payment_summary_list.sort(key=lambda x: x['total'], reverse=True)
+    
+    # Calculate overall payment totals
+    total_payment_count = sum(item['count'] for item in payment_summary_list)
+    total_payment_amount = sum(item['total'] for item in payment_summary_list)
+    
+    # Sort payments by date (newest first)
+    formatted_payments.sort(key=lambda x: x['date'], reverse=True)
+    
     if request.method == 'POST':
         action = request.form.get('action')
         
@@ -521,15 +619,9 @@ def manage_payments(trip_id):
             description = request.form.get('description')
             amount = request.form.get('amount')
             date_str = request.form.get('date')
+            expense_id = request.form.get('expense_id')
             
             try:
-                print(f"Adding general payment for participant ID: {participant_id}, type: {type(participant_id)}")
-                
-                # Handle participant_id
-                if participant_id is None:
-                    flash('Participant must be selected', 'error')
-                    return redirect(url_for('trips.manage_payments', trip_id=trip_id))
-                    
                 amount = float(amount)
                 if amount <= 0:
                     flash('Amount must be greater than zero', 'error')
@@ -538,13 +630,12 @@ def manage_payments(trip_id):
                 date = datetime.strptime(date_str, '%Y-%m-%d')
                 
                 # Add general payment
-                trip.add_general_payment(participant_id, amount, description, date)
+                trip.add_general_payment(participant_id, amount, description, date, expense_id)
                 db.session.commit()
                 
                 # Determine participant name for the flash message
                 if participant_id.startswith('unregistered_'):
                     name = participant_id.replace('unregistered_', '')
-                    print(f"Detected unregistered participant with name: {name} for general payment")
                     flash(f'Added payment of ₹{amount} for {name}', 'success')
                 else:
                     user = registered_map.get(participant_id)
@@ -563,6 +654,7 @@ def manage_payments(trip_id):
             description = request.form.get('description')
             amount = request.form.get('amount')
             date_str = request.form.get('date')
+            expense_id = request.form.get('expense_id')
             
             try:
                 amount = float(amount)
@@ -573,7 +665,7 @@ def manage_payments(trip_id):
                 date = datetime.strptime(date_str, '%Y-%m-%d')
                 
                 # Edit general payment
-                if not trip.edit_general_payment(payment_index, participant_id, amount, description, date):
+                if not trip.edit_general_payment(payment_index, participant_id, amount, description, date, expense_id):
                     flash('Payment not found', 'error')
                     return redirect(url_for('trips.manage_payments', trip_id=trip_id))
                     
@@ -615,39 +707,18 @@ def manage_payments(trip_id):
             flash('Invalid action', 'error')
             return redirect(url_for('trips.manage_payments', trip_id=trip_id))
     
-    # Format payments for display
-    formatted_payments = []
-    for payment in payments:
-        participant_id = payment['participant_id']
-        if participant_id.startswith('unregistered_'):
-            name = participant_id.replace('unregistered_', '')
-            formatted_payments.append({
-                'id': participant_id,
-                'name': name,
-                'type': 'unregistered',
-                'amount': payment['amount'],
-                'description': payment['description'],
-                'date': payment['date']
-            })
-        elif participant_id in registered_map:
-            user = registered_map[participant_id]
-            formatted_payments.append({
-                'id': participant_id,
-                'name': user.name,
-                'type': 'registered',
-                'amount': payment['amount'],
-                'description': payment['description'],
-                'date': payment['date']
-            })
-    
-    # Sort payments by date (newest first)
-    formatted_payments.sort(key=lambda x: x['date'], reverse=True)
-    
     return render_template('trips/manage_payments.html',
                           trip=trip,
                           registered_participants=registered_participants,
                           unregistered_participants=unregistered_participants,
-                          payments=formatted_payments)
+                          payments=formatted_payments,
+                          expenses=expenses,
+                          expense_summary=expense_summary_list,
+                          total_expense_count=total_expense_count,
+                          total_expense_amount=total_expense_amount,
+                          payment_summary=payment_summary_list,
+                          total_payment_count=total_payment_count,
+                          total_payment_amount=total_payment_amount)
 
 @trips_bp.route('/<int:trip_id>/settlements')
 @login_required

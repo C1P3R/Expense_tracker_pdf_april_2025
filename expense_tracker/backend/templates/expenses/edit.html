@@ -26,6 +26,20 @@
                             <input type="date" class="form-control" id="date" name="date" value="{{ expense.date.strftime('%Y-%m-%d') }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">Select category</option>
+                                <option value="Food" {% if expense.category == 'Food' %}selected{% endif %}>Food</option>
+                                <option value="Transport" {% if expense.category == 'Transport' %}selected{% endif %}>Transport</option>
+                                <option value="Accommodation" {% if expense.category == 'Accommodation' %}selected{% endif %}>Accommodation</option>
+                                <option value="Entertainment" {% if expense.category == 'Entertainment' %}selected{% endif %}>Entertainment</option>
+                                <option value="Shopping" {% if expense.category == 'Shopping' %}selected{% endif %}>Shopping</option>
+                                <option value="Medical" {% if expense.category == 'Medical' %}selected{% endif %}>Medical</option>
+                                <option value="Utilities" {% if expense.category == 'Utilities' %}selected{% endif %}>Utilities</option>
+                                <option value="Other" {% if expense.category == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
                             <label for="payer_id" class="form-label">Paid By</label>
                             <select class="form-select" id="payer_id" name="payer_id" required>
                                 <!-- Everyone option -->
@@ -422,15 +436,17 @@
                 // Clear existing items
                 itemsContainer.innerHTML = '';
                 
-                {% if expense.split_method == 'itemized' and expense.items %}
+                {% if expense.split_method == 'itemized' and items_data %}
                 // Load existing items
-                {% for item in expense.items %}
+                console.log('Items data available:', {{ items_data|tojson }});
+                {% for item in items_data %}
+                console.log('Processing item:', {{ item|tojson }});
                 const newItem = document.importNode(itemTemplate.content, true).firstElementChild;
                 const nameInput = newItem.querySelector('.item-name');
                 const priceInput = newItem.querySelector('.item-price');
                 
-                nameInput.value = "{{ item.name }}";
-                priceInput.value = "{{ item.price }}";
+                nameInput.value = {{ item.name|tojson }};
+                priceInput.value = {{ item.price|tojson }};
                 
                 // Add remove button functionality
                 const removeBtn = newItem.querySelector('.remove-item');
@@ -453,13 +469,15 @@
                     const checkboxDiv = document.createElement('div');
                     checkboxDiv.className = 'form-check';
                     
-                    const isChecked = {{ item.participants|tojson }}.includes(parseInt(participant.id));
+                    const itemParticipants = {{ item.participants|default([])|tojson }};
+                    const isChecked = itemParticipants.includes(participant.id);
                     
                     checkboxDiv.innerHTML = `
                         <input class="form-check-input item-participant-checkbox" type="checkbox" 
-                               id="item{{ loop.index0 }}_participant${participant.id}" 
+                               name="item_participants_${itemsContainer.children.length}"
+                               id="item${itemsContainer.children.length}_participant${participant.id}" 
                                value="${participant.id}" ${isChecked ? 'checked' : ''}>
-                        <label class="form-check-label" for="item{{ loop.index0 }}_participant${participant.id}">
+                        <label class="form-check-label" for="item${itemsContainer.children.length}_participant${participant.id}">
                             ${participant.name}
                         </label>
                     `;
