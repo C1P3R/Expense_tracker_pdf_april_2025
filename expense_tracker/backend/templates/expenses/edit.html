@@ -467,7 +467,8 @@
                     const checkboxDiv = document.createElement('div');
                     checkboxDiv.className = 'form-check';
                     
-                    const isChecked = {{ item.participants|tojson }}.includes(parseInt(participant.id));
+                    const itemParticipants = {{ (item.participants if item.participants is defined else [])|tojson }};
+                    const isChecked = itemParticipants.includes(parseInt(participant.id));
                     
                     checkboxDiv.innerHTML = `
                         <input class="form-check-input item-participant-checkbox" type="checkbox" 

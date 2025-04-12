@@ -3,6 +3,22 @@
 {% block title %}Add Expense - Trip Expense Tracker{% endblock %}
 
 {% block content %}
+<style>
+    /* Styling for the multi-select dropdown */
+    .item-participants-select {
+        min-height: 100px;
+    }
+    
+    .item-participants-select option {
+        padding: 5px;
+    }
+    
+    /* Make the form elements consistent */
+    .card {
+        margin-bottom: 1.5rem;
+    }
+</style>
+
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="card">
@@ -187,6 +203,7 @@
                         <div class="alert alert-info mb-3">
                             <i class="fas fa-info-circle me-2"></i>
                             Add items and select who consumed each item. The cost will be split equally among the consumers of each item.
+                            <br><strong>Tip:</strong> Hold Ctrl (or Cmd on Mac) to select multiple participants for each item.
                         </div>
                         
                         <div id="itemsContainer">
@@ -414,9 +431,10 @@
                 // Check if each item has at least one participant
                 const items = document.querySelectorAll('.item-card');
                 for (let i = 0; i < items.length; i++) {
-                    const itemParticipants = items[i].querySelectorAll('.item-participant-checkbox:checked');
-                    if (itemParticipants.length === 0) {
-                        alert('Each item must be consumed by at least one participant.');
+                    const selectElement = items[i].querySelector('.item-participants-select');
+                    if (selectElement.selectedOptions.length === 0) {
+                        const itemName = items[i].querySelector('.item-name').value || `Item ${i+1}`;
+                        alert(`Item "${itemName}" must be consumed by at least one participant.`);
                         return;
                     }
                 }
@@ -502,7 +520,7 @@
             
             // Update Itemized Split Section
             if (selectedMethod === 'itemized') {
-                // Update participant checkboxes in all items
+                // Update participant dropdowns in all items
                 updateItemParticipants();
                 updateItemizedSplitTotals();
             }
@@ -555,56 +573,133 @@
             const priceInput = newItem.querySelector('.item-price');
             priceInput.addEventListener('input', updateItemizedSplitTotals);
             
-            // Add participant checkboxes
-            const itemParticipantsContainer = newItem.querySelector('.item-participants-select');
-            const selectedParticipants = Array.from(document.querySelectorAll('.participant-checkbox:checked'))
+            // Get all selected participants (both registered and unregistered)
+            const selectedRegisteredParticipants = Array.from(document.querySelectorAll('input[name="participants"]:checked'))
                 .map(checkbox => ({
                     id: checkbox.value,
-                    name: checkbox.nextElementSibling.textContent.trim()
+                    name: checkbox.nextElementSibling.textContent.trim(),
+                    type: 'registered'
                 }));
+                
+            const selectedUnregisteredParticipants = Array.from(document.querySelectorAll('input[name="unregistered_participants"]:checked'))
+                .map(checkbox => ({
+                    id: checkbox.value,
+                    name: checkbox.nextElementSibling.textContent.trim().replace(" Unregistered", ""),
+                    type: 'unregistered'
+                }));
+                
+            const selectedParticipants = [...selectedRegisteredParticipants, ...selectedUnregisteredParticipants];
             
-            selectedParticipants.forEach(participant => {
-                const option = document.createElement('option');
-                option.value = participant.id;
-                option.textContent = participant.name;
-                itemParticipantsContainer.appendChild(option);
-            });
+            // Add participant options to the select dropdown
+            const selectElement = newItem.querySelector('.item-participants-select');
+            
+            // First, add all registered participants
+            if (selectedRegisteredParticipants.length > 0) {
+                const registeredGroup = document.createElement('optgroup');
+                registeredGroup.label = 'Registered Users';
+                
+                selectedRegisteredParticipants.forEach(participant => {
+                    const option = document.createElement('option');
+                    option.value = participant.id;
+                    option.textContent = participant.name;
+                    option.selected = true; // Select by default
+                    registeredGroup.appendChild(option);
+                });
+                
+                selectElement.appendChild(registeredGroup);
+            }
+            
+            // Then, add all unregistered participants
+            if (selectedUnregisteredParticipants.length > 0) {
+                const unregisteredGroup = document.createElement('optgroup');
+                unregisteredGroup.label = 'Unregistered Participants';
+                
+                selectedUnregisteredParticipants.forEach(participant => {
+                    const option = document.createElement('option');
+                    option.value = 'unregistered_' + participant.id;
+                    option.textContent = participant.name;
+                    option.selected = true; // Select by default
+                    unregisteredGroup.appendChild(option);
+                });
+                
+                selectElement.appendChild(unregisteredGroup);
+            }
+            
+            // Add change event listener to the select element
+            selectElement.addEventListener('change', updateItemizedSplitTotals);
             
             // Add the new item to the container
             itemsContainer.appendChild(newItem);
             
             // Update item count
             updateItemCount();
-            
-            // Add event listeners to participant checkboxes
-            const itemParticipantCheckboxes = newItem.querySelectorAll('.item-participant-checkbox');
-            itemParticipantCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateItemizedSplitTotals);
-            });
+            updateItemizedSplitTotals();
         }
         
         function updateItemParticipants() {
             const items = document.querySelectorAll('.item-card');
-            const selectedParticipants = Array.from(document.querySelectorAll('.participant-checkbox:checked'))
+            
+            // Get all selected participants (both registered and unregistered)
+            const selectedRegisteredParticipants = Array.from(document.querySelectorAll('input[name="participants"]:checked'))
                 .map(checkbox => ({
                     id: checkbox.value,
-                    name: checkbox.nextElementSibling.textContent.trim()
+                    name: checkbox.nextElementSibling.textContent.trim(),
+                    type: 'registered'
                 }));
+                
+            const selectedUnregisteredParticipants = Array.from(document.querySelectorAll('input[name="unregistered_participants"]:checked'))
+                .map(checkbox => ({
+                    id: checkbox.value,
+                    name: checkbox.nextElementSibling.textContent.trim().replace(" Unregistered", ""),
+                    type: 'unregistered'
+                }));
+                
+            const selectedParticipants = [...selectedRegisteredParticipants, ...selectedUnregisteredParticipants];
             
             items.forEach((item, itemIndex) => {
-                const itemParticipantsContainer = item.querySelector('.item-participants-select');
-                itemParticipantsContainer.innerHTML = '';
+                const selectElement = item.querySelector('.item-participants-select');
                 
-                selectedParticipants.forEach(participant => {
-                    const option = document.createElement('option');
-                    option.value = participant.id;
-                    option.textContent = participant.name;
-                    itemParticipantsContainer.appendChild(option);
+                // Store previously selected values to restore them after updating options
+                const previouslySelected = Array.from(selectElement.selectedOptions).map(option => option.value);
+                
+                // Clear current options
+                selectElement.innerHTML = '';
+                
+                // First, add all registered participants
+                if (selectedRegisteredParticipants.length > 0) {
+                    const registeredGroup = document.createElement('optgroup');
+                    registeredGroup.label = 'Registered Users';
                     
-                    // Add event listener
-                    const optionElement = itemParticipantsContainer.querySelector('option[value="' + participant.id + '"]');
-                    optionElement.addEventListener('change', updateItemizedSplitTotals);
-                });
+                    selectedRegisteredParticipants.forEach(participant => {
+                        const option = document.createElement('option');
+                        option.value = participant.id;
+                        option.textContent = participant.name;
+                        option.selected = previouslySelected.includes(participant.id) || previouslySelected.length === 0;
+                        registeredGroup.appendChild(option);
+                    });
+                    
+                    selectElement.appendChild(registeredGroup);
+                }
+                
+                // Then, add all unregistered participants
+                if (selectedUnregisteredParticipants.length > 0) {
+                    const unregisteredGroup = document.createElement('optgroup');
+                    unregisteredGroup.label = 'Unregistered Participants';
+                    
+                    selectedUnregisteredParticipants.forEach(participant => {
+                        const option = document.createElement('option');
+                        option.value = 'unregistered_' + participant.id;
+                        option.textContent = participant.name;
+                        option.selected = previouslySelected.includes('unregistered_' + participant.id) || previouslySelected.length === 0;
+                        unregisteredGroup.appendChild(option);
+                    });
+                    
+                    selectElement.appendChild(unregisteredGroup);
+                }
+                
+                // Add change event listener
+                selectElement.name = `item_participants_${itemIndex}`;
+                selectElement.addEventListener('change', updateItemizedSplitTotals);
             });
             
             // Update form fields for submission
@@ -622,14 +717,29 @@
             items.forEach((item, index) => {
                 const nameInput = item.querySelector('.item-name');
                 const priceInput = item.querySelector('.item-price');
-                const participantCheckboxes = item.querySelectorAll('.item-participant-checkbox');
+                const selectElement = item.querySelector('.item-participants-select');
                 
                 // Update name attributes for form submission
                 nameInput.name = `item_name_${index}`;
                 priceInput.name = `item_price_${index}`;
+                selectElement.name = `item_participants_${index}`;
                 
-                participantCheckboxes.forEach(checkbox => {
-                    checkbox.name = `item_participants_${index}`;
+                // Create hidden inputs for unregistered participants
+                const selectedUnregistered = Array.from(selectElement.selectedOptions)
+                    .filter(option => option.value.startsWith('unregistered_'))
+                    .map(option => option.value.replace('unregistered_', ''));
+                
+                // Remove any existing hidden inputs for unregistered
+                const existingInputs = item.querySelectorAll('input[name^="item_unregistered_"]');
+                existingInputs.forEach(input => input.remove());
+                
+                // Add new hidden inputs for each unregistered participant
+                selectedUnregistered.forEach(name => {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = `item_unregistered_${index}`;
+                    hiddenInput.value = name;
+                    item.appendChild(hiddenInput);
                 });
             });
         }

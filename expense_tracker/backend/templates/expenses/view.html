@@ -200,35 +200,54 @@
                     <i class="fas fa-check-circle me-2"></i>
                     This expense was split by items consumed by each participant.
                 </div>
-                {% for item in expense.items %}
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">{{ item.name }}</h6>
-                            <span class="badge bg-primary">₹{{ item.price|round(2) }}</span>
+                {% if items %}
+                    {% for item in items %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">{{ item.name|default('Unnamed Item') }}</h6>
+                                <span class="badge bg-primary">₹{{ item.price|default(0)|round(2) }}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Consumed by:</strong></p>
-                        <div>
-                            {% for user_id in item.participants %}
-                            <span class="badge bg-secondary me-1 mb-1">
-                                {% if user_id|int == current_user.id %}
-                                You
-                                {% else %}
-                                {{ user_map.get(user_id|string, 'Unknown') }}
+                        <div class="card-body">
+                            <p><strong>Consumed by:</strong></p>
+                            <div>
+                                {% if item.participants %}
+                                    {% for user_id in item.participants %}
+                                    <span class="badge bg-secondary me-1 mb-1">
+                                        {% if user_id|int == current_user.id %}
+                                        You
+                                        {% else %}
+                                        {{ user_map.get(user_id|string, 'Unknown') }}
+                                        {% endif %}
+                                    </span>
+                                    {% endfor %}
                                 {% endif %}
-                            </span>
-                            {% endfor %}
+                                
+                                {% if item.unregistered %}
+                                    {% for name in item.unregistered %}
+                                    <span class="badge bg-info me-1 mb-1">
+                                        {{ name }} (Unregistered)
+                                    </span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            {% if item.price is defined and item.price and item.participants|default([])|length > 0 %}
+                            <p class="mt-2 mb-0">
+                                <small class="text-muted">
+                                    Each person's share: ₹{{ (item.price / (item.participants|default([])|length + item.unregistered|default([])|length))|round(2) }}
+                                </small>
+                            </p>
+                            {% endif %}
                         </div>
-                        <p class="mt-2 mb-0">
-                            <small class="text-muted">
-                                Each person's share: ₹{{ (item.price / item.participants|length)|round(2) }}
-                            </small>
-                        </p>
                     </div>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No item details found for this itemized expense.
+                    </div>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
