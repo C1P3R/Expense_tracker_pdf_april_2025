@@ -436,15 +436,17 @@
                 // Clear existing items
                 itemsContainer.innerHTML = '';
                 
-                {% if expense.split_method == 'itemized' and expense.items %}
+                {% if expense.split_method == 'itemized' and items_data %}
                 // Load existing items
-                {% for item in expense.items %}
+                console.log('Items data available:', {{ items_data|tojson }});
+                {% for item in items_data %}
+                console.log('Processing item:', {{ item|tojson }});
                 const newItem = document.importNode(itemTemplate.content, true).firstElementChild;
                 const nameInput = newItem.querySelector('.item-name');
                 const priceInput = newItem.querySelector('.item-price');
                 
-                nameInput.value = "{{ item.name }}";
-                priceInput.value = "{{ item.price }}";
+                nameInput.value = {{ item.name|tojson }};
+                priceInput.value = {{ item.price|tojson }};
                 
                 // Add remove button functionality
                 const removeBtn = newItem.querySelector('.remove-item');
@@ -467,14 +469,15 @@
                     const checkboxDiv = document.createElement('div');
                     checkboxDiv.className = 'form-check';
                     
-                    const itemParticipants = {{ (item.participants if item.participants is defined else [])|tojson }};
-                    const isChecked = itemParticipants.includes(parseInt(participant.id));
+                    const itemParticipants = {{ item.participants|default([])|tojson }};
+                    const isChecked = itemParticipants.includes(participant.id);
                     
                     checkboxDiv.innerHTML = `
                         <input class="form-check-input item-participant-checkbox" type="checkbox" 
-                               id="item{{ loop.index0 }}_participant${participant.id}" 
+                               name="item_participants_${itemsContainer.children.length}"
+                               id="item${itemsContainer.children.length}_participant${participant.id}" 
                                value="${participant.id}" ${isChecked ? 'checked' : ''}>
-                        <label class="form-check-label" for="item{{ loop.index0 }}_participant${participant.id}">
+                        <label class="form-check-label" for="item${itemsContainer.children.length}_participant${participant.id}">
                             ${participant.name}
                         </label>
                     `;

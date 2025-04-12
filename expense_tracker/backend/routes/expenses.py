@@ -565,13 +565,38 @@ def edit_expense(trip_id, expense_id):
     items_data = []
     try:
         if expense.split_method == 'itemized':
+            print(f"Processing itemized split expense...")
+            print(f"Raw items from expense: {expense.items}")
             items = expense.get_items()
-            if isinstance(items, dict) and 'items' in items:
-                items_data = items['items']
+            print(f"Parsed items: {items}")
+            
+            # Handle both dictionary and list formats
+            if isinstance(items, dict):
+                if 'items' in items:
+                    items_data = items['items']
+                    print(f"Found items in dictionary: {items_data}")
+                else:
+                    # If no 'items' key but the dict contains item-like entries
+                    if any(key in items for key in ['name', 'price', 'participants']):
+                        items_data = [items]
+                    print(f"Using dictionary as single item: {items_data}")
             elif isinstance(items, list):
                 items_data = items
+                print(f"Using items list directly: {items_data}")
+            
+            # Ensure each item has the required fields
+            items_data = [{
+                'name': item.get('name', ''),
+                'price': float(item.get('price', 0)),
+                'participants': item.get('participants', []),
+                'unregistered': item.get('unregistered', [])
+            } for item in items_data]
+            
+            print(f"Final processed items_data: {items_data}")
     except Exception as e:
         print(f"Error parsing items: {e}")
+        import traceback
+        print(traceback.format_exc())
     
     print(f"Expense participants: {expense_participant_ids}")
     print(f"Expense unregistered participants: {unregistered_participants}")
