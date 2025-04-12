@@ -82,6 +82,11 @@ def add_expense(trip_id):
             payer_id = request.form.get('payer_id', str(current_user.id))
             print(f"Payer ID: {payer_id}")
             
+            # Handle 'group_everyone' special case for payer
+            if payer_id == 'group_everyone':
+                print("Group payment detected: This expense was paid by everyone collectively")
+                # We'll store this special value directly
+            
             # Create new expense
             print("Creating expense object...")
             expense = Expense(
@@ -307,16 +312,23 @@ def view_expense(trip_id, expense_id):
     
     # Handle payer information
     payer_info = {}
-    if expense.payer_id.startswith('unregistered_'):
-        payer_name = expense.payer_id.replace('unregistered_', '')
-        payer_info = {'id': expense.payer_id, 'name': payer_name, 'type': 'unregistered'}
+    payer_id_str = str(expense.payer_id)
+    if payer_id_str == 'group_everyone':
+        # Special case for group payment
+        payer_info = {'id': 'group_everyone', 'name': 'Everyone (Group Payment)', 'type': 'group'}
+    elif payer_id_str.startswith('unregistered_'):
+        payer_name = payer_id_str.replace('unregistered_', '')
+        payer_info = {'id': payer_id_str, 'name': payer_name, 'type': 'unregistered'}
     else:
         try:
             payer = User.query.get(int(expense.payer_id))
             if payer:
                 payer_info = {'id': str(payer.id), 'name': payer.name, 'type': 'registered'}
+            else:
+                # Unknown user ID
+                payer_info = {'id': payer_id_str, 'name': 'Unknown', 'type': 'unknown'}
         except (ValueError, TypeError):
-            payer_info = {'id': expense.payer_id, 'name': 'Unknown', 'type': 'unknown'}
+            payer_info = {'id': payer_id_str, 'name': 'Unknown', 'type': 'unknown'}
     
     # Get expense participants (both registered and unregistered)
     participants = []
@@ -458,7 +470,7 @@ def edit_expense(trip_id, expense_id):
         
         # Handle different split methods
         if split_method == 'equal':
-            expense.update_split('equal', selected_participants)
+            expense.update_split('equal', selected_participants, unregistered_participants=selected_unregistered)
         
         elif split_method == 'exact':
             shares_data = {}
@@ -467,7 +479,13 @@ def edit_expense(trip_id, expense_id):
                 if share_amount:
                     shares_data[participant_id] = float(share_amount)
             
-            expense.update_split('exact', selected_participants, shares_data=shares_data)
+            # Also process unregistered participants' shares if any
+            for name in selected_unregistered:
+                share_amount = request.form.get(f'share_unregistered_{name}')
+                if share_amount:
+                    shares_data[f'unregistered_{name}'] = float(share_amount)
+            
+            expense.update_split('exact', selected_participants, shares_data=shares_data, unregistered_participants=selected_unregistered)
         
         elif split_method == 'itemized':
             # Process items from form
@@ -478,15 +496,17 @@ def edit_expense(trip_id, expense_id):
                 item_name = request.form.get(f'item_name_{i}')
                 item_price = request.form.get(f'item_price_{i}')
                 item_participants = request.form.getlist(f'item_participants_{i}')
+                item_unregistered = request.form.getlist(f'item_unregistered_{i}')
                 
-                if item_name and item_price and item_participants:
+                if item_name and item_price and (item_participants or item_unregistered):
                     items_data.append({
                         'name': item_name,
                         'price': float(item_price),
-                        'participants': item_participants
+                        'participants': item_participants,
+                        'unregistered': item_unregistered
                     })
             
-            expense.update_split('itemized', selected_participants, items_data=items_data)
+            expense.update_split('itemized', selected_participants, items_data=items_data, unregistered_participants=selected_unregistered)
         
         db.session.commit()
         

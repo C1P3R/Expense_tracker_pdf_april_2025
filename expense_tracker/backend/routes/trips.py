@@ -349,6 +349,13 @@ def manage_advances(trip_id):
             amount = request.form.get('amount')
             
             try:
+                print(f"Adding advance for participant ID: {participant_id}, type: {type(participant_id)}")
+                
+                # Handle participant_id
+                if participant_id is None:
+                    flash('Participant must be selected', 'error')
+                    return redirect(url_for('trips.manage_advances', trip_id=trip_id))
+                    
                 amount = float(amount)
                 if amount <= 0:
                     flash('Amount must be greater than zero', 'error')
@@ -361,6 +368,7 @@ def manage_advances(trip_id):
                 # Determine participant name for the flash message
                 if participant_id.startswith('unregistered_'):
                     name = participant_id.replace('unregistered_', '')
+                    print(f"Detected unregistered participant with name: {name}")
                     flash(f'Added advance payment of ₹{amount} for {name}', 'success')
                 else:
                     user = registered_map.get(participant_id)
@@ -413,6 +421,15 @@ def manage_advances(trip_id):
             participant_id = request.form.get('participant_id')
             
             try:
+                print(f"Attempting to delete advance for participant ID: {participant_id}")
+                # Debug the advance data
+                advances = trip.get_advances()
+                if participant_id in advances:
+                    print(f"Advance to delete: {advances[participant_id]} for participant {participant_id}")
+                else:
+                    print(f"No advance found for participant: {participant_id}")
+                    print(f"Available advances: {advances}")
+                
                 # Delete advance payment
                 if not trip.delete_advance(participant_id):
                     flash('Advance payment not found', 'error')
@@ -506,6 +523,13 @@ def manage_payments(trip_id):
             date_str = request.form.get('date')
             
             try:
+                print(f"Adding general payment for participant ID: {participant_id}, type: {type(participant_id)}")
+                
+                # Handle participant_id
+                if participant_id is None:
+                    flash('Participant must be selected', 'error')
+                    return redirect(url_for('trips.manage_payments', trip_id=trip_id))
+                    
                 amount = float(amount)
                 if amount <= 0:
                     flash('Amount must be greater than zero', 'error')
@@ -520,6 +544,7 @@ def manage_payments(trip_id):
                 # Determine participant name for the flash message
                 if participant_id.startswith('unregistered_'):
                     name = participant_id.replace('unregistered_', '')
+                    print(f"Detected unregistered participant with name: {name} for general payment")
                     flash(f'Added payment of ₹{amount} for {name}', 'success')
                 else:
                     user = registered_map.get(participant_id)
@@ -564,6 +589,14 @@ def manage_payments(trip_id):
             payment_index = int(request.form.get('payment_index'))
             
             try:
+                print(f"Attempting to delete payment at index: {payment_index}")
+                # Debug the payment data
+                all_payments = trip.get_general_payments()
+                if 0 <= payment_index < len(all_payments):
+                    print(f"Payment to delete: {all_payments[payment_index]}")
+                else:
+                    print(f"Invalid payment index: {payment_index}, total payments: {len(all_payments)}")
+                
                 # Delete general payment
                 if not trip.delete_general_payment(payment_index):
                     flash('Invalid payment index', 'error')
@@ -640,14 +673,74 @@ def view_settlements(trip_id):
     
     # Calculate individual balances
     balances = {}
+    total_paid = {}
+    total_share = {}
+    
+    # Import Expense model
+    from expense_tracker.backend.models.expense import Expense
+    
+    # Get all expenses for this trip, ordered by date (newest first)
+    expenses = Expense.query.filter_by(trip_id=trip.id).order_by(Expense.date.desc()).all()
+    
+    # For each participant, calculate their balance, total paid and total share
     for participant_id in participant_ids:
-        balances[participant_id] = trip.calculate_user_balance(int(participant_id))
+        # Calculate balance using the existing method
+        balance = trip.calculate_user_balance(int(participant_id))
+        balances[participant_id] = balance
+        
+        # Calculate total paid (from expenses + advances + general payments)
+        
+        # Sum of expenses paid
+        expense_paid = Expense.query.filter_by(trip_id=trip.id, payer_id=participant_id).with_entities(func.sum(Expense.amount)).scalar() or 0
+        
+        # Add general payments
+        general_payments = trip.get_participant_general_payments(participant_id)
+        
+        # Add advance payments
+        advances = trip.get_advances()
+        advance_amount = advances.get(participant_id, 0)
+        
+        # Total paid is the sum of all three
+        total_paid_amount = expense_paid + general_payments + advance_amount
+        total_paid[participant_id] = total_paid_amount
+        
+        # Total share is Total paid minus balance
+        # If balance is positive, they paid more than their share
+        # If balance is negative, they paid less than their share
+        total_share[participant_id] = total_paid_amount - balance
+    
+    # Also calculate for unregistered participants
+    unregistered_participants = trip.get_unregistered_participants()
+    for name in unregistered_participants:
+        # Create a unique ID for the unregistered participant
+        unregistered_id = f'unregistered_{name}'
+        
+        # Calculate balance
+        balance = trip.calculate_user_balance(unregistered_id)
+        balances[unregistered_id] = balance
+        
+        # Add to user_map for display
+        user_map[unregistered_id] = name
+        
+        # Calculate total paid and share similar to registered participants
+        # (This might be simplified depending on what's possible for unregistered participants)
+        expense_paid = Expense.query.filter_by(trip_id=trip.id, payer_id=unregistered_id).with_entities(func.sum(Expense.amount)).scalar() or 0
+        general_payments = trip.get_participant_general_payments(unregistered_id)
+        advances = trip.get_advances()
+        advance_amount = advances.get(unregistered_id, 0)
+        
+        total_paid_amount = expense_paid + general_payments + advance_amount
+        total_paid[unregistered_id] = total_paid_amount
+        total_share[unregistered_id] = total_paid_amount - balance
     
     return render_template('trips/settlements.html', 
                           trip=trip,
                           user_map=user_map,
                           settlements=settlements,
-                          balances=balances)
+                          balances=balances,
+                          total_paid=total_paid,
+                          total_share=total_share,
+                          expenses=expenses)
 
 @trips_bp.route('/<int:trip_id>/export-pdf')
 @login_required

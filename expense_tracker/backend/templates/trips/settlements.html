@@ -85,12 +85,10 @@
                             <tr>
                                 <td>{{ user_map.get(participant_id, 'Unknown') }}</td>
                                 <td class="text-end">
-                                    {% set total_paid = trip.expenses.filter_by(payer_id=participant_id|int).with_entities(func.sum(Expense.amount)).scalar() or 0 %}
-                                    ₹{{ total_paid|round(2) }}
+                                    ₹{{ total_paid.get(participant_id, 0)|round(2) }}
                                 </td>
                                 <td class="text-end">
-                                    {% set total_share = total_paid - balance %}
-                                    ₹{{ total_share|round(2) }}
+                                    ₹{{ total_share.get(participant_id, 0)|round(2) }}
                                 </td>
                                 <td class="text-end {% if balance > 0 %}text-success{% elif balance < 0 %}text-danger{% endif %}">
                                     {% if balance > 0 %}
@@ -131,7 +129,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for expense in trip.expenses.order_by(Expense.date.desc()).all() %}
+                            {% for expense in expenses %}
                             <tr>
                                 <td>{{ expense.date.strftime('%d %b %Y') }}</td>
                                 <td>{{ expense.description }}</td>
