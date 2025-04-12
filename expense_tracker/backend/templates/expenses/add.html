@@ -207,9 +207,9 @@
                                         </div>
                                         <div class="col-md-4 mb-2">
                                             <label class="form-label">Consumed By</label>
-                                            <div class="item-participants">
+                                            <select class="form-select item-participants-select" multiple required>
                                                 <!-- Will be populated by JavaScript -->
-                                            </div>
+                                            </select>
                                         </div>
                                         <div class="col-md-1 mb-2 d-flex align-items-end">
                                             <button type="button" class="btn btn-outline-danger remove-item">
@@ -556,7 +556,7 @@
             priceInput.addEventListener('input', updateItemizedSplitTotals);
             
             // Add participant checkboxes
-            const itemParticipantsContainer = newItem.querySelector('.item-participants');
+            const itemParticipantsContainer = newItem.querySelector('.item-participants-select');
             const selectedParticipants = Array.from(document.querySelectorAll('.participant-checkbox:checked'))
                 .map(checkbox => ({
                     id: checkbox.value,
@@ -564,17 +564,10 @@
                 }));
             
             selectedParticipants.forEach(participant => {
-                const checkboxDiv = document.createElement('div');
-                checkboxDiv.className = 'form-check';
-                checkboxDiv.innerHTML = `
-                    <input class="form-check-input item-participant-checkbox" type="checkbox" 
-                           id="item${itemsContainer.children.length}_participant${participant.id}" 
-                           value="${participant.id}" checked>
-                    <label class="form-check-label" for="item${itemsContainer.children.length}_participant${participant.id}">
-                        ${participant.name}
-                    </label>
-                `;
-                itemParticipantsContainer.appendChild(checkboxDiv);
+                const option = document.createElement('option');
+                option.value = participant.id;
+                option.textContent = participant.name;
+                itemParticipantsContainer.appendChild(option);
             });
             
             // Add the new item to the container
@@ -599,26 +592,18 @@
                 }));
             
             items.forEach((item, itemIndex) => {
-                const itemParticipantsContainer = item.querySelector('.item-participants');
+                const itemParticipantsContainer = item.querySelector('.item-participants-select');
                 itemParticipantsContainer.innerHTML = '';
                 
                 selectedParticipants.forEach(participant => {
-                    const checkboxDiv = document.createElement('div');
-                    checkboxDiv.className = 'form-check';
-                    checkboxDiv.innerHTML = `
-                        <input class="form-check-input item-participant-checkbox" type="checkbox" 
-                               name="item_participants_${itemIndex}" 
-                               id="item${itemIndex}_participant${participant.id}" 
-                               value="${participant.id}" checked>
-                        <label class="form-check-label" for="item${itemIndex}_participant${participant.id}">
-                            ${participant.name}
-                        </label>
-                    `;
-                    itemParticipantsContainer.appendChild(checkboxDiv);
+                    const option = document.createElement('option');
+                    option.value = participant.id;
+                    option.textContent = participant.name;
+                    itemParticipantsContainer.appendChild(option);
                     
                     // Add event listener
-                    const checkbox = checkboxDiv.querySelector('.item-participant-checkbox');
-                    checkbox.addEventListener('change', updateItemizedSplitTotals);
+                    const optionElement = itemParticipantsContainer.querySelector('option[value="' + participant.id + '"]');
+                    optionElement.addEventListener('change', updateItemizedSplitTotals);
                 });
             });
             
