@@ -26,7 +26,13 @@ class Trip(db.Model):
     advances_json = db.Column(db.Text, default=json.dumps({}))
     
     # JSON field to store general payments made during the trip
-    # Format: [{"participant_id": "1", "amount": 100, "description": "Hotel payment", "date": "2025-04-09"}, ...]
+    # Format: [{
+    #     "participant_id": "1",
+    #     "amount": 100,
+    #     "description": "Hotel payment",
+    #     "date": "2025-04-09",
+    #     "expense_id": 1  # Links to the expense this payment is for
+    # }, ...]
     general_payments_json = db.Column(db.Text, default=json.dumps([]))
     
     # Relationships
@@ -226,11 +232,9 @@ class Trip(db.Model):
         """Save the general payments list as JSON"""
         self.general_payments_json = json.dumps(payments)
         
-    def add_general_payment(self, participant_id, amount, description, date=None):
+    def add_general_payment(self, participant_id, amount, description, date=None, expense_id=None):
         """Add a general payment made by a participant"""
         payments = self.get_general_payments()
-        
-        print(f"Model - Adding general payment: participant_id={participant_id} of type {type(participant_id)}")
         
         # Use current date if not provided
         if not date:
@@ -243,14 +247,15 @@ class Trip(db.Model):
             'participant_id': participant_id,
             'amount': float(amount),
             'description': description,
-            'date': date
+            'date': date,
+            'expense_id': expense_id  # Links to the expense this payment is for
         }
         
         payments.append(payment)
         self.set_general_payments(payments)
         return True
         
-    def edit_general_payment(self, payment_index, participant_id, amount, description, date=None):
+    def edit_general_payment(self, payment_index, participant_id, amount, description, date=None, expense_id=None):
         """Edit an existing general payment"""
         payments = self.get_general_payments()
         
@@ -262,10 +267,15 @@ class Trip(db.Model):
         payment['amount'] = float(amount)
         payment['description'] = description
         
+        # Update date if provided
         if date:
             if isinstance(date, datetime):
                 date = date.strftime('%Y-%m-%d')
             payment['date'] = date
+            
+        # Update expense_id if provided
+        if expense_id is not None:
+            payment['expense_id'] = expense_id
             
         self.set_general_payments(payments)
         return True

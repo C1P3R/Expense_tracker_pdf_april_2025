@@ -513,6 +513,9 @@ def manage_payments(trip_id):
     # Get current payments
     payments = trip.get_general_payments()
     
+    # Get all expenses for this trip
+    expenses = trip.expenses.all()
+    
     if request.method == 'POST':
         action = request.form.get('action')
         
@@ -521,15 +524,9 @@ def manage_payments(trip_id):
             description = request.form.get('description')
             amount = request.form.get('amount')
             date_str = request.form.get('date')
+            expense_id = request.form.get('expense_id')
             
             try:
-                print(f"Adding general payment for participant ID: {participant_id}, type: {type(participant_id)}")
-                
-                # Handle participant_id
-                if participant_id is None:
-                    flash('Participant must be selected', 'error')
-                    return redirect(url_for('trips.manage_payments', trip_id=trip_id))
-                    
                 amount = float(amount)
                 if amount <= 0:
                     flash('Amount must be greater than zero', 'error')
@@ -538,13 +535,12 @@ def manage_payments(trip_id):
                 date = datetime.strptime(date_str, '%Y-%m-%d')
                 
                 # Add general payment
-                trip.add_general_payment(participant_id, amount, description, date)
+                trip.add_general_payment(participant_id, amount, description, date, expense_id)
                 db.session.commit()
                 
                 # Determine participant name for the flash message
                 if participant_id.startswith('unregistered_'):
                     name = participant_id.replace('unregistered_', '')
-                    print(f"Detected unregistered participant with name: {name} for general payment")
                     flash(f'Added payment of ₹{amount} for {name}', 'success')
                 else:
                     user = registered_map.get(participant_id)
@@ -563,6 +559,7 @@ def manage_payments(trip_id):
             description = request.form.get('description')
             amount = request.form.get('amount')
             date_str = request.form.get('date')
+            expense_id = request.form.get('expense_id')
             
             try:
                 amount = float(amount)
@@ -573,7 +570,7 @@ def manage_payments(trip_id):
                 date = datetime.strptime(date_str, '%Y-%m-%d')
                 
                 # Edit general payment
-                if not trip.edit_general_payment(payment_index, participant_id, amount, description, date):
+                if not trip.edit_general_payment(payment_index, participant_id, amount, description, date, expense_id):
                     flash('Payment not found', 'error')
                     return redirect(url_for('trips.manage_payments', trip_id=trip_id))
                     
@@ -627,7 +624,8 @@ def manage_payments(trip_id):
                 'type': 'unregistered',
                 'amount': payment['amount'],
                 'description': payment['description'],
-                'date': payment['date']
+                'date': payment['date'],
+                'expense_id': payment['expense_id']
             })
         elif participant_id in registered_map:
             user = registered_map[participant_id]
@@ -637,7 +635,8 @@ def manage_payments(trip_id):
                 'type': 'registered',
                 'amount': payment['amount'],
                 'description': payment['description'],
-                'date': payment['date']
+                'date': payment['date'],
+                'expense_id': payment['expense_id']
             })
     
     # Sort payments by date (newest first)
@@ -647,7 +646,8 @@ def manage_payments(trip_id):
                           trip=trip,
                           registered_participants=registered_participants,
                           unregistered_participants=unregistered_participants,
-                          payments=formatted_payments)
+                          payments=formatted_payments,
+                          expenses=expenses)
 
 @trips_bp.route('/<int:trip_id>/settlements')
 @login_required
