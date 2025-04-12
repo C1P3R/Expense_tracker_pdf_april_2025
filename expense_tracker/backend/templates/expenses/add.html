@@ -28,6 +28,9 @@
                         <div class="col-md-6 mb-3">
                             <label for="payer_id" class="form-label">Paid By</label>
                             <select class="form-select" id="payer_id" name="payer_id" required>
+                                <!-- Everyone option -->
+                                <option value="group_everyone">Everyone (Group Payment)</option>
+                                
                                 <!-- Registered participants -->
                                 <optgroup label="Registered Users">
                                     {% for participant in participants %}
@@ -50,6 +53,12 @@
                             </select>
                             <div class="form-text">
                                 <small>Select who paid for this expense</small>
+                            </div>
+                            
+                            <!-- Warning for Everyone payment option -->
+                            <div id="everyonePaymentWarning" class="alert alert-warning mt-2" style="display: none;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Group Payment:</strong> This indicates the expense was paid collectively by the group rather than by an individual. This won't affect individual settlements - participants will still need to pay or receive money based on their consumption.
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -74,13 +83,16 @@
                         <label class="form-label">Select Participants</label>
                         <div class="card">
                             <div class="card-body">
-                                <div class="mb-2">
+                                <div class="mb-2 d-flex justify-content-between align-items-center">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="selectAllParticipants">
                                         <label class="form-check-label" for="selectAllParticipants">
                                             <strong>Select All</strong>
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-primary btn-sm" id="everyoneButton">
+                                        <i class="fas fa-users me-1"></i> Everyone
+                                    </button>
                                 </div>
                                 <div class="row">
                                     <!-- Registered Participants -->
@@ -231,6 +243,24 @@
         const today = new Date();
         document.getElementById('date').value = today.toISOString().split('T')[0];
         
+        // Toggle Everyone payment warning
+        const payerSelect = document.getElementById('payer_id');
+        const everyoneWarning = document.getElementById('everyonePaymentWarning');
+        
+        function toggleEveryoneWarning() {
+            if (payerSelect.value === 'group_everyone') {
+                everyoneWarning.style.display = 'block';
+            } else {
+                everyoneWarning.style.display = 'none';
+            }
+        }
+        
+        // Check initial state
+        toggleEveryoneWarning();
+        
+        // Listen for changes
+        payerSelect.addEventListener('change', toggleEveryoneWarning);
+        
         // Select All Participants functionality
         const selectAllCheckbox = document.getElementById('selectAllParticipants');
         const participantCheckboxes = document.querySelectorAll('.participant-checkbox');
@@ -240,6 +270,30 @@
                 checkbox.checked = selectAllCheckbox.checked;
             });
             updateSplitSections();
+        });
+        
+        // Everyone button functionality
+        const everyoneButton = document.getElementById('everyoneButton');
+        everyoneButton.addEventListener('click', function() {
+            // Select all participants
+            participantCheckboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            
+            // Set "Select All" checkbox to checked
+            selectAllCheckbox.checked = true;
+            
+            // Set description to "Everyone" if empty
+            const descriptionInput = document.getElementById('description');
+            if (!descriptionInput.value.trim()) {
+                descriptionInput.value = "Everyone";
+            }
+            
+            // Update UI for split methods
+            updateSplitSections();
+            
+            // Show feedback
+            alert("Selected all participants for an 'Everyone' expense!");
         });
         
         participantCheckboxes.forEach(checkbox => {

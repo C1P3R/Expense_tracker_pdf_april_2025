@@ -88,6 +88,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('trips.manage_advances', trip_id=trip.id) }}">
+                    <input type="hidden" name="action" value="add">
                     <div class="mb-3">
                         <label for="participant_id" class="form-label">Participant</label>
                         <select class="form-select" id="participant_id" name="participant_id" required>
@@ -161,12 +162,9 @@ document.addEventListener('DOMContentLoaded', function() {
             actionInput.value = 'edit';
             form.appendChild(actionInput);
 
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'participant_id';
-            idInput.value = participantId;
-            form.appendChild(idInput);
-
+            // Note: We do NOT add a new participant_id hidden input as it would conflict
+            // with the select element that already has name="participant_id"
+            
             // Change submit button text
             const submitButton = form.querySelector('button[type="submit"]');
             submitButton.innerHTML = '<i class="fas fa-save me-2"></i>Update Advance';
@@ -183,15 +181,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Create a form for the delete request
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '{{ url_for('trips.manage_advances', trip_id=trip.id) }}';
+                form.action = "{{ url_for('trips.manage_advances', trip_id=trip.id) }}";
                 
-                // Add CSRF token
-                const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrf_token';
-                csrfInput.value = csrfToken;
-                form.appendChild(csrfInput);
+                // Add CSRF token if available (handles both Flask-WTF and other CSRF implementations)
+                const csrfTokenElement = document.querySelector('meta[name="csrf-token"]') || 
+                                        document.querySelector('input[name="csrf_token"]');
+                
+                if (csrfTokenElement) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrf_token';
+                    csrfInput.value = csrfTokenElement.content || csrfTokenElement.value;
+                    form.appendChild(csrfInput);
+                }
                 
                 // Add hidden inputs
                 const actionInput = document.createElement('input');

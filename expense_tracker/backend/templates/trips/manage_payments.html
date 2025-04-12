@@ -95,6 +95,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('trips.manage_payments', trip_id=trip.id) }}">
+                    <input type="hidden" name="action" value="add">
                     <div class="mb-3">
                         <label for="participant_id" class="form-label">Participant</label>
                         <select class="form-select" id="participant_id" name="participant_id" required>
@@ -177,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
             
             // Remove any existing hidden inputs
-            const existingInputs = form.querySelectorAll('input[type="hidden"][name="action"]');
+            const existingInputs = form.querySelectorAll('input[type="hidden"][name="action"], input[type="hidden"][name="payment_index"]');
             existingInputs.forEach(input => input.remove());
             
             // Add new hidden inputs
@@ -209,15 +210,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Create a form for the delete request
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '{{ url_for('trips.manage_payments', trip_id=trip.id) }}';
+                form.action = "{{ url_for('trips.manage_payments', trip_id=trip.id) }}";
                 
-                // Add CSRF token
-                const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrf_token';
-                csrfInput.value = csrfToken;
-                form.appendChild(csrfInput);
+                // Add CSRF token if available (handles both Flask-WTF and other CSRF implementations)
+                const csrfTokenElement = document.querySelector('meta[name="csrf-token"]') || 
+                                        document.querySelector('input[name="csrf_token"]');
+                
+                if (csrfTokenElement) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrf_token';
+                    csrfInput.value = csrfTokenElement.content || csrfTokenElement.value;
+                    form.appendChild(csrfInput);
+                }
                 
                 // Add hidden inputs
                 const actionInput = document.createElement('input');
@@ -231,6 +236,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 indexInput.name = 'payment_index';
                 indexInput.value = paymentIndex;
                 form.appendChild(indexInput);
+                
+                // For debugging, log the form data
+                console.log("Deleting payment index:", paymentIndex);
                 
                 // Append form to body and submit
                 document.body.appendChild(form);

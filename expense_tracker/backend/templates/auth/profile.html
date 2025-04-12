@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">User Profile</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>Personal Information</h5>
+                            <hr>
+                            <dl class="row">
+                                <dt class="col-sm-3">Name:</dt>
+                                <dd class="col-sm-9">{{ user.name }}</dd>
+                                
+                                <dt class="col-sm-3">Email:</dt>
+                                <dd class="col-sm-9">{{ user.email }}</dd>
+                                
+                                <dt class="col-sm-3">Joined:</dt>
+                                <dd class="col-sm-9">{{ user.created_at.strftime('%d %B %Y') }}</dd>
+                                
+                                <dt class="col-sm-3">Last Login:</dt>
+                                <dd class="col-sm-9">{{ user.last_seen.strftime('%d %B %Y %H:%M') if user.last_seen else 'Not available' }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">
+                                <i class="fas fa-user-edit me-2"></i>Edit Profile
+                            </a>
+                            <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-primary ms-2">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

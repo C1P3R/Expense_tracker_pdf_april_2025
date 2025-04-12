@@ -175,6 +175,8 @@ class Trip(db.Model):
         """Add an advance payment for a participant"""
         advances = self.get_advances()
         
+        print(f"Model - Adding advance: participant_id={participant_id} of type {type(participant_id)}")
+        
         # If participant already has an advance, add to it
         if participant_id in advances:
             advances[participant_id] += amount
@@ -197,15 +199,21 @@ class Trip(db.Model):
     def delete_advance(self, participant_id):
         """Delete an advance payment for a participant"""
         advances = self.get_advances()
+        
+        print(f"In model: Deleting advance for {participant_id}")
+        print(f"Available advances: {advances}")
+        
         if participant_id not in advances:
+            print(f"Advance not found for {participant_id}")
             return False
             
         # Remove the advance
         del advances[participant_id]
         
         # Save changes
-        self.advances_json = json.dumps(advances)
-        db.session.add(self)
+        self.set_advances(advances)  # Use set_advances method instead of direct JSON manipulation
+        
+        # No need to call db.session.add here as the calling function will handle the commit
         return True
         
     def get_general_payments(self):
@@ -221,6 +229,8 @@ class Trip(db.Model):
     def add_general_payment(self, participant_id, amount, description, date=None):
         """Add a general payment made by a participant"""
         payments = self.get_general_payments()
+        
+        print(f"Model - Adding general payment: participant_id={participant_id} of type {type(participant_id)}")
         
         # Use current date if not provided
         if not date:
@@ -264,15 +274,20 @@ class Trip(db.Model):
         """Delete a general payment"""
         payments = self.get_general_payments()
         
+        print(f"In model: Deleting payment at index {payment_index}")
+        print(f"Available payments: {payments}")
+        
         if payment_index < 0 or payment_index >= len(payments):
+            print(f"Payment index out of range: {payment_index}, total payments: {len(payments)}")
             return False
             
         # Remove the payment
         del payments[payment_index]
         
         # Save changes
-        self.general_payments_json = json.dumps(payments)
-        db.session.add(self)
+        self.set_general_payments(payments)  # Use set_general_payments method instead of direct JSON manipulation
+        
+        # No need to call db.session.add here as the calling function will handle the commit
         return True
         
     def get_participant_general_payments(self, participant_id):

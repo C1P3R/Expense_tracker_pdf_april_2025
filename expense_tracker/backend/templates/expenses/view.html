@@ -59,7 +59,9 @@
                         <strong>Paid By:</strong>
                     </div>
                     <div class="col-md-8">
-                        {% if payer_info.id|string == current_user.id|string %}
+                        {% if payer_info.type == 'group' %}
+                            <span class="badge bg-warning">{{ payer_info.name }}</span>
+                        {% elif payer_info.id|string == current_user.id|string %}
                             <span class="badge bg-primary">You</span>
                         {% elif payer_info.type == 'unregistered' %}
                             <span class="badge bg-info">{{ payer_info.name }} (Unregistered)</span>
