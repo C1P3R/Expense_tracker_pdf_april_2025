@@ -53,9 +53,10 @@ body {
 /* Card Styles */
 .card {
     border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     transition: transform 0.2s ease-in-out;
-    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    background: #fff;
 }
 
 .card:hover {
@@ -63,11 +64,14 @@ body {
 }
 
 .card-header {
-    background-color: var(--primary-color);
-    color: white;
-    border-bottom: none;
-    border-radius: 8px 8px 0 0 !important;
-    font-weight: 500;
+    padding: 1rem;
+    background: transparent;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.card-header .card-title {
+    font-weight: 600;
+    font-size: 1.1rem;
 }
 
 /* Button Styles */
@@ -154,21 +158,25 @@ body {
 }
 
 .stat-card {
-    text-align: center;
-    padding: 1.5rem;
+    height: 100%;
+    transition: transform 0.2s ease;
 }
 
-.stat-card .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+.stat-card:hover {
+    transform: translateY(-2px);
 }
 
-.stat-card .stat-label {
-    font-size: 0.9rem;
-    color: #6c757d;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.stat-icon i {
+    font-size: 1.25rem;
 }
 
 /* Trip and Expense Styles */
@@ -222,22 +230,15 @@ body {
     color: #155724;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .card-body {
-        padding: 1rem;
-    }
-    
-    .stat-card .stat-value {
-        font-size: 1.5rem;
-    }
-}
-
 /* List Group Styles */
 .list-group-item {
-    border: none;
-    border-bottom: 1px solid rgba(0,0,0,0.125);
-    padding: 1.25rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: rgba(0,0,0,0.01);
 }
 
 .list-group-item:last-child {
@@ -301,6 +302,27 @@ body {
     .list-group-item .btn {
         flex: 1;
         padding: 0.375rem 0.5rem;
+    }
+
+    .card-header {
+        padding: 0.75rem;
+    }
+
+    .list-group-item {
+        padding: 0.75rem;
+    }
+
+    .stat-card {
+        padding: 0.75rem !important;
+    }
+
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .stat-icon i {
+        font-size: 1rem;
     }
 }
 
@@ -429,4 +451,114 @@ img {
     .trip-actions .btn {
         margin: 0 0.25rem;
     }
+}
+
+/* Dashboard Specific Styles */
+.dashboard-stat-card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #4a90e2 100%);
+    color: white;
+}
+
+.dashboard-stat-card .stat-icon {
+    opacity: 0.8;
+}
+
+.dashboard-stat-card h3 {
+        font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.trip-info h6 {
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+.trip-actions .btn {
+    min-width: 80px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.summary-stat {
+    transition: transform 0.2s ease;
+}
+
+.summary-stat:hover {
+    transform: translateY(-2px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .dashboard-stat-card h3 {
+        font-size: 1.25rem;
+    }
+    
+    .trip-info h6 {
+        font-size: 0.95rem;
+    }
+    
+    .summary-stat {
+        padding: 0.75rem !important;
+    }
+    
+    .summary-stat h3 {
+        font-size: 1rem !important;
+    }
+    
+    .summary-stat i {
+        font-size: 1.25rem !important;
+    }
+}
+
+/* Modal Styles */
+.modal.fade {
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.2s ease-in-out;
+}
+
+.modal.fade.show {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal.fade .modal-dialog {
+    transform: scale(0.95) translateY(0);
+    opacity: 0;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+    margin: 1.75rem auto;
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 3.5rem);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+.modal.fade.show .modal-dialog {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin: auto;
+    width: 100%;
+    max-width: 500px;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
 }

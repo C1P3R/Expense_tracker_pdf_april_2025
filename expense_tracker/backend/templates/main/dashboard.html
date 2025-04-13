@@ -3,67 +3,78 @@
 {% block title %}Dashboard - Trip Expense Tracker{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h1 class="mb-3">Dashboard</h1>
-        <p class="lead">Welcome back, {{ current_user.name }}!</p>
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-1">Dashboard</h1>
+            <p class="text-muted mb-0">Welcome back, {{ current_user.name }}!</p>
     </div>
-    <div class="col-md-4 text-end">
-        <a href="{{ url_for('trips.add_trip') }}" class="btn btn-primary">
+        <div>
+            <a href="{{ url_for('trips.add_trip') }}" class="btn btn-primary btn-sm">
             <i class="fas fa-plus me-2"></i>New Trip
         </a>
+        </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-4 mb-4">
+<div class="row g-3">
+    <!-- Quick Stats -->
+    <div class="col-12 col-md-3">
         <div class="card h-100">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0 text-primary">
                     <i class="fas fa-wallet me-2"></i>Your Balance
                 </h5>
             </div>
             <div class="card-body text-center">
                 {% if total_balance > 0 %}
-                <h3 class="text-success">₹{{ total_balance|round(2) }}</h3>
-                <p>You are owed money</p>
+                <h3 class="text-success mb-2">₹{{ total_balance|round(2) }}</h3>
+                <p class="text-muted mb-0">You are owed money</p>
                 {% elif total_balance < 0 %}
-                <h3 class="text-danger">₹{{ (total_balance * -1)|round(2) }}</h3>
-                <p>You owe money</p>
+                <h3 class="text-danger mb-2">₹{{ (total_balance * -1)|round(2) }}</h3>
+                <p class="text-muted mb-0">You owe money</p>
                 {% else %}
-                <h3>₹0.00</h3>
-                <p>You're all settled up!</p>
+                <h3 class="mb-2">₹0.00</h3>
+                <p class="text-muted mb-0">All settled up!</p>
                 {% endif %}
             </div>
         </div>
     </div>
     
-    <div class="col-md-8 mb-4">
+    <!-- Recent Trips -->
+    <div class="col-12 col-md-9">
         <div class="card h-100">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-2">
+                <h5 class="card-title mb-0 text-primary">
                     <i class="fas fa-suitcase me-2"></i>Recent Trips
                 </h5>
+                <a href="{{ url_for('trips.list_trips') }}" class="btn btn-sm btn-outline-primary">
+                    View all trips
+                </a>
             </div>
             <div class="card-body p-0">
                 {% if recent_trips %}
                 <div class="list-group list-group-flush">
                     {% for trip in recent_trips %}
-                    <div class="list-group-item">
-                        <div class="d-flex flex-column flex-lg-row justify-content-between">
-                            <div class="trip-info mb-3 mb-lg-0">
+                    <div class="list-group-item py-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="trip-info me-2">
                                 <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}" class="text-decoration-none">
-                                    <h5 class="mb-2">{{ trip.name }}</h5>
-                                    <small class="text-muted d-block mb-2">{{ trip.start_date.strftime('%d %b %Y') }} - {{ trip.end_date.strftime('%d %b %Y') }}</small>
-                                    <p class="mb-0">{{ trip.description|truncate(100) }}</p>
+                                    <h6 class="mb-1">{{ trip.name }}</h6>
+                                    <div class="d-flex align-items-center text-muted small">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        {{ trip.start_date.strftime('%d %b') }} - {{ trip.end_date.strftime('%d %b %Y') }}
+                                    </div>
                                 </a>
                             </div>
-                            <div class="trip-actions d-flex flex-row justify-content-between justify-content-lg-end align-items-start gap-2">
-                                <a href="{{ url_for('expenses.add_expense', trip_id=trip.id) }}" class="btn btn-success btn-sm flex-fill flex-lg-grow-0">
-                                    <i class="fas fa-plus me-1"></i>Add Expense
+                            <div class="trip-actions d-flex gap-2">
+                                <a href="{{ url_for('expenses.add_expense', trip_id=trip.id) }}" class="btn btn-success btn-sm d-flex align-items-center">
+                                    <i class="fas fa-plus me-1"></i>
+                                    <span class="d-none d-md-inline">Add</span>
                                 </a>
-                                <a href="{{ url_for('expenses.list_expenses', trip_id=trip.id) }}" class="btn btn-outline-primary btn-sm flex-fill flex-lg-grow-0">
-                                    <i class="fas fa-list me-1"></i>View Expenses
+                                <a href="{{ url_for('expenses.list_expenses', trip_id=trip.id) }}" class="btn btn-outline-primary btn-sm d-flex align-items-center">
+                                    <i class="fas fa-list me-1"></i>
+                                    <span class="d-none d-md-inline">View</span>
                                 </a>
                             </div>
                         </div>
@@ -72,75 +83,78 @@
                 </div>
                 {% else %}
                 <div class="text-center p-4">
-                    <p class="mb-0">You don't have any trips yet.</p>
-                    <a href="{{ url_for('trips.add_trip') }}" class="btn btn-sm btn-outline-primary mt-2">Create your first trip</a>
-                </div>
-                {% endif %}
-            </div>
-            {% if recent_trips %}
-            <div class="card-footer text-end">
-                <a href="{{ url_for('trips.list_trips') }}" class="btn btn-sm btn-outline-primary">View all trips</a>
+                    <p class="mb-0">No trips yet. Start by creating one!</p>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-{% if recent_expenses %}
-<div class="row">
-    <div class="col-12 mb-4">
+    <!-- Trip Statistics -->
+    <div class="col-12">
         <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-receipt me-2"></i>Recent Expenses
+            <div class="card-header bg-white border-0">
+                <h5 class="card-title mb-0 text-primary">
+                    <i class="fas fa-chart-pie me-2"></i>Trip Statistics
                 </h5>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Trip</th>
-                                <th>Description</th>
-                                <th>Amount</th>
-                                <th>Paid By</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in recent_expenses %}
-                            <tr>
-                                <td>{{ item.expense.date.strftime('%d %b %Y') }}</td>
-                                <td>
-                                    <a href="{{ url_for('trips.view_trip', trip_id=item.trip.id) }}">
-                                        {{ item.trip.name }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="{{ url_for('expenses.view_expense', trip_id=item.trip.id, expense_id=item.expense.id) }}">
-                                        {{ item.expense.description }}
-                                    </a>
-                                </td>
-                                <td>₹{{ item.expense.amount|round(2) }}</td>
-                                <td>
-                                    {% if item.expense.payer_id|string == current_user.id|string %}
-                                    <span class="badge bg-primary">You</span>
-                                    {% else %}
-                                    {% if item.expense.payer_id|string and (item.expense.payer_id|string).startswith('unregistered_') %}
-                                        {{ (item.expense.payer_id|string).replace('unregistered_', '') }} (Unregistered)
-                                    {% else %}
-                                        {{ item.payer_name if item.payer_name else "Unknown" }}
-                                    {% endif %}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card bg-primary bg-opacity-10 rounded-3 p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-primary bg-opacity-25 rounded-circle p-3 me-3">
+                                    <i class="fas fa-receipt text-primary"></i>
+                                </div>
+                                <div class="text-start">
+                                    <h3 class="h5 mb-1">₹{{ monthly_spent|default(0)|round(2) }}</h3>
+                                    <p class="text-muted small mb-0">This Month</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card bg-success bg-opacity-10 rounded-3 p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-success bg-opacity-25 rounded-circle p-3 me-3">
+                                    <i class="fas fa-arrow-up text-success"></i>
+                                </div>
+                                <div class="text-start">
+                                    <h3 class="h5 mb-1">₹{{ monthly_received|default(0)|round(2) }}</h3>
+                                    <p class="text-muted small mb-0">Received</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card bg-danger bg-opacity-10 rounded-3 p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-danger bg-opacity-25 rounded-circle p-3 me-3">
+                                    <i class="fas fa-arrow-down text-danger"></i>
+                                </div>
+                                <div class="text-start">
+                                    <h3 class="h5 mb-1">₹{{ monthly_paid|default(0)|round(2) }}</h3>
+                                    <p class="text-muted small mb-0">Paid</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card bg-info bg-opacity-10 rounded-3 p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-info bg-opacity-25 rounded-circle p-3 me-3">
+                                    <i class="fas fa-suitcase text-info"></i>
+                                </div>
+                                <div class="text-start">
+                                    <h3 class="h5 mb-1">{{ monthly_trips|default(0) }}</h3>
+                                    <p class="text-muted small mb-0">Active Trips</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endif %}
 {% endblock %}

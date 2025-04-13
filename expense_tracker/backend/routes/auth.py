@@ -2,7 +2,12 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from expense_tracker.backend.models.user import User
+from expense_tracker.backend.models.trip import Trip
+from expense_tracker.backend.models.expense import Expense
 from expense_tracker.backend.database import db
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from collections import defaultdict
 
 bp = Blueprint('auth', __name__)
 
@@ -95,7 +100,7 @@ def edit_profile():
             flash('Name is required', 'error')
             return render_template('auth/edit_profile.html')
         
-        # Update user profile
+        # Update user profile (email cannot be changed)
         current_user.name = name
         db.session.commit()
         
@@ -133,3 +138,69 @@ def change_password():
         return redirect(url_for('auth.profile'))
     
     return render_template('auth/change_password.html')
+
+@bp.route('/statistics')
+@login_required
+def statistics():
+    # Get user's trips
+    user_trips = Trip.query.filter(
+        (Trip.creator_id == current_user.id) | 
+        (Trip.participants.any(id=current_user.id))
+    ).all()
+    
+    # Get all expenses from user's trips
+    all_expenses = []
+    total_spent = 0
+    trip_partners = set()
+    
+    for trip in user_trips:
+        expenses = Expense.query.filter_by(trip_id=trip.id).all()
+        all_expenses.extend(expenses)
+        
+        # Calculate total spent by user
+        for expense in expenses:
+            if expense.payer_id == str(current_user.id):
+                total_spent += expense.amount
+            
+        # Collect unique trip partners
+        trip_partners.update([p.id for p in trip.participants if p.id != current_user.id])
+    
+    # Get recent trips (last 5)
+    recent_trips = Trip.query.filter(
+        (Trip.creator_id == current_user.id) | 
+        (Trip.participants.any(id=current_user.id))
+    ).order_by(Trip.start_date.desc()).limit(5).all()
+    
+    # Get recent expenses (last 5)
+    recent_expenses = Expense.query.join(Trip).filter(
+        (Trip.creator_id == current_user.id) | 
+        (Trip.participants.any(id=current_user.id))
+    ).order_by(Expense.date.desc()).limit(5).all()
+    
+    # Calculate monthly spending for the last 12 months
+    monthly_spending = defaultdict(float)
+    today = datetime.today()
+    twelve_months_ago = today - relativedelta(months=12)
+    
+    for expense in all_expenses:
+        if expense.date >= twelve_months_ago and expense.payer_id == str(current_user.id):
+            month_key = expense.date.strftime('%B %Y')
+            monthly_spending[month_key] += expense.amount
+    
+    # Sort monthly data
+    sorted_months = sorted(
+        monthly_spending.keys(),
+        key=lambda x: datetime.strptime(x, '%B %Y')
+    )
+    monthly_labels = sorted_months
+    monthly_data = [monthly_spending[month] for month in sorted_months]
+    
+    return render_template('auth/statistics.html',
+                         total_trips=len(user_trips),
+                         total_expenses=len(all_expenses),
+                         total_spent=total_spent,
+                         total_partners=len(trip_partners),
+                         recent_trips=recent_trips,
+                         recent_expenses=recent_expenses,
+                         monthly_labels=monthly_labels,
+                         monthly_spending=monthly_data)
