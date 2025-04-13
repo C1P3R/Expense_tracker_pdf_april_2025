@@ -1,327 +1,49 @@
 {% extends "base.html" %}
 
-{% block title %}Profile - Trip Expense Tracker{% endblock %}
+{% block title %}User Profile{% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <div class="container py-5">
-        <!-- Header Section -->
-        <div class="header-section mb-5">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
-                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-primary btn-icon">
-                        <i class="fas fa-arrow-left"></i>
-                    </a>
-                    <h1 class="mb-0 display-6 fw-bold text-gradient">Profile Settings</h1>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">User Profile</h4>
                 </div>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-danger btn-icon">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <!-- Profile Card -->
-            <div class="col-lg-4">
-                <div class="card profile-card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-5">
-                        <div class="avatar-wrapper mb-4">
-                            <div class="avatar">
-                                <span class="avatar-text">{{ current_user.name[:1] }}</span>
-                            </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>Personal Information</h5>
+                            <hr>
+                            <dl class="row">
+                                <dt class="col-sm-3">Name:</dt>
+                                <dd class="col-sm-9">{{ user.name }}</dd>
+                                
+                                <dt class="col-sm-3">Email:</dt>
+                                <dd class="col-sm-9">{{ user.email }}</dd>
+                                
+                                <dt class="col-sm-3">Joined:</dt>
+                                <dd class="col-sm-9">{{ user.created_at.strftime('%d %B %Y') }}</dd>
+                                
+                                <dt class="col-sm-3">Last Login:</dt>
+                                <dd class="col-sm-9">{{ user.last_seen.strftime('%d %B %Y %H:%M') if user.last_seen else 'Not available' }}</dd>
+                            </dl>
                         </div>
-                        <h3 class="fw-bold text-gradient mb-1">{{ current_user.name }}</h3>
-                        <p class="text-muted mb-4">{{ current_user.email }}</p>
-                        <button class="btn btn-primary w-100" type="button" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                            <i class="fas fa-edit me-2"></i>Edit Profile
-                        </button>
                     </div>
-                </div>
-            </div>
-
-            <div class="col-lg-8">
-                <!-- Stats Section -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body p-4">
-                        <h4 class="fw-bold text-gradient mb-4">Account Overview</h4>
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <a href="{{ url_for('auth.statistics') }}" class="text-decoration-none">
-                                    <div class="stat-card trips">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-suitcase"></i>
-                                        </div>
-                                        <div class="stat-content">
-                                            <h2 class="stat-value mb-0" data-value="{{ total_trips }}">0</h2>
-                                            <p class="stat-label mb-0">Total Trips</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="{{ url_for('auth.statistics') }}" class="text-decoration-none">
-                                    <div class="stat-card expenses">
-                                        <div class="stat-icon">
-                                            <i class="fas fa-receipt"></i>
-                                        </div>
-                                        <div class="stat-content">
-                                            <h2 class="stat-value mb-0" data-value="{{ total_expenses }}">0</h2>
-                                            <p class="stat-label mb-0">Total Expenses</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">
+                                <i class="fas fa-user-edit me-2"></i>Edit Profile
+                            </a>
+                            <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-primary ms-2">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a>
                         </div>
                     </div>
                 </div>
-
-                <!-- Security Section -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <h4 class="fw-bold text-gradient mb-4">Security Settings</h4>
-                        <button class="btn btn-primary w-100" type="button" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                            <i class="fas fa-key me-2"></i>Change Password
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Edit Profile Modal -->
-<div class="modal fade" id="editProfileModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 bg-light">
-                <h5 class="modal-title fw-bold text-gradient">Edit Profile</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form method="POST" action="{{ url_for('auth.edit_profile') }}">
-                    <div class="mb-4">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control" name="name" value="{{ current_user.name }}" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">Email <small class="text-muted">(cannot be changed)</small></label>
-                        <input type="email" class="form-control bg-light" name="email" value="{{ current_user.email }}" readonly>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Save Changes</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Change Password Modal -->
-<div class="modal fade" id="changePasswordModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 bg-light">
-                <h5 class="modal-title fw-bold text-gradient">Change Password</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form method="POST" action="{{ url_for('auth.change_password') }}">
-                    <div class="mb-4">
-                        <label class="form-label">Current Password</label>
-                        <input type="password" class="form-control" name="current_password" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">New Password</label>
-                        <input type="password" class="form-control" name="new_password" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-control" name="confirm_password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Update Password</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block styles %}
-<style>
-:root {
-    --primary: #4F46E5;
-    --primary-dark: #4338CA;
-    --secondary: #6B7280;
-    --success: #10B981;
-    --danger: #EF4444;
-    --warning: #F59E0B;
-    --info: #3B82F6;
-    --light: #F3F4F6;
-    --dark: #1F2937;
-}
-
-/* Text Gradient */
-.text-gradient {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Profile Container */
-.profile-container {
-    background-color: var(--light);
-    min-height: 100vh;
-}
-
-/* Avatar Styles */
-.avatar-wrapper {
-    position: relative;
-    width: 120px;
-    height: 120px;
-    margin: 0 auto;
-}
-
-.avatar {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 2.5rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
-}
-
-/* Button Styles */
-.btn-icon {
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
-    border: none;
-    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.1);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(79, 70, 229, 0.2);
-}
-
-/* Stat Card Styles */
-.stat-card {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-}
-
-.trips .stat-icon {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
-}
-
-.expenses .stat-icon {
-    background: linear-gradient(135deg, var(--danger) 0%, var(--warning) 100%);
-}
-
-.stat-content {
-    flex-grow: 1;
-}
-
-.stat-value {
-    color: var(--dark);
-    font-size: 2rem;
-    font-weight: bold;
-}
-
-.stat-label {
-    color: var(--secondary);
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-/* Form Controls */
-.form-control {
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    border: 1px solid #E5E7EB;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .stat-card {
-        padding: 1rem;
-    }
-
-    .stat-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.25rem;
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
-    }
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate stat values
-    const statValues = document.querySelectorAll('.stat-value');
-    statValues.forEach(stat => {
-        const finalValue = parseInt(stat.getAttribute('data-value'));
-        let currentValue = 0;
-        const duration = 1500;
-        const steps = 50;
-        const increment = finalValue / steps;
-        const interval = duration / steps;
-
-        const counter = setInterval(() => {
-            currentValue += increment;
-            if (currentValue >= finalValue) {
-                stat.textContent = finalValue;
-                clearInterval(counter);
-            } else {
-                stat.textContent = Math.floor(currentValue);
-            }
-        }, interval);
-    });
-});
-</script>
-{% endblock %}
+{% endblock %} 
