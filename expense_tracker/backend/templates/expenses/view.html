@@ -4,13 +4,78 @@
 
 {% block styles %}
 <style>
+/* General Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    margin-bottom: 1.5rem;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    border-radius: 1rem 1rem 0 0 !important;
+    padding: 1rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.5em 1em;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Button Styles */
+.btn {
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* List Group Styles */
+.list-group-item {
+    padding: 1rem 1.25rem;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
 /* Modal Styles */
 .modal {
     opacity: 0;
     display: none;
-    transition: opacity 0.3s ease-in-out !important;
-    overflow-x: hidden;
-    overflow-y: auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(5px);
 }
 
 .modal.show {
@@ -22,7 +87,7 @@
     opacity: 0;
     display: none;
     background-color: rgba(0, 0, 0, 0.5);
-    transition: opacity 0.3s ease-in-out !important;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-backdrop.show {
@@ -31,35 +96,125 @@
 }
 
 .modal-dialog {
-    transition: transform 0.3s ease-in-out !important;
-    transform: translateY(-20px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: scale(0.95) translateY(-20px);
 }
 
 .modal.show .modal-dialog {
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
 }
 
 .modal-content {
-    border: 0;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
     background: var(--light);
-    transition: all 0.3s ease-in-out !important;
-    position: relative;
-    z-index: 1050;
+    overflow: hidden;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Icons */
+.fas {
+    margin-right: 0.5rem;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background: transparent;
+    padding: 0.75rem 0;
+}
+
+.breadcrumb-item a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+.breadcrumb-item a:hover {
+    color: #0056b3;
 }
 </style>
 {% endblock %}
 
 {% block styles %}
 <style>
+/* General Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    margin-bottom: 1.5rem;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    border-radius: 1rem 1rem 0 0 !important;
+    padding: 1rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.5em 1em;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Button Styles */
+.btn {
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* List Group Styles */
+.list-group-item {
+    padding: 1rem 1.25rem;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
 /* Modal Styles */
 .modal {
     opacity: 0;
     display: none;
-    transition: opacity 0.3s ease-in-out !important;
-    overflow-x: hidden;
-    overflow-y: auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(5px);
 }
 
 .modal.show {
@@ -71,7 +226,7 @@
     opacity: 0;
     display: none;
     background-color: rgba(0, 0, 0, 0.5);
-    transition: opacity 0.3s ease-in-out !important;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-backdrop.show {
@@ -80,22 +235,47 @@
 }
 
 .modal-dialog {
-    transition: transform 0.3s ease-in-out !important;
-    transform: translateY(-20px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: scale(0.95) translateY(-20px);
 }
 
 .modal.show .modal-dialog {
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
 }
 
 .modal-content {
-    border: 0;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
     background: var(--light);
-    transition: all 0.3s ease-in-out !important;
-    position: relative;
-    z-index: 1050;
+    overflow: hidden;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Icons */
+.fas {
+    margin-right: 0.5rem;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background: transparent;
+    padding: 0.75rem 0;
+}
+
+.breadcrumb-item a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+.breadcrumb-item a:hover {
+    color: #0056b3;
 }
 </style>
 {% endblock %}
