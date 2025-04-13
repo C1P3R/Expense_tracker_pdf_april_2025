@@ -5,28 +5,114 @@
 {% block styles %}
 <style>
 /* Modal Animation Fixes */
+/*
 .modal {
     opacity: 0;
-    display: none;
+    display: block;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1050;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .modal.show {
     opacity: 1;
-    display: block;
+    visibility: visible;
 }
-
+ 
 .modal-dialog {
     margin: 1.75rem auto;
+    transition: transform 0.3s ease-in-out;
+    transform: translateY(-20px);
+    max-width: 500px;
+    margin-top: 50px;
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0);
 }
 
 .modal-backdrop {
     opacity: 0;
-    transition: opacity 0.15s linear;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1040;
 }
 
 .modal-backdrop.show {
     opacity: 0.5;
+    visibility: visible;
 }
+
+.modal-content {
+    transition: all 0.3s ease-in-out;
+    background-color: #fff;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+}
+*/
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+} 
+
+.modal {
+    display: none;
+    opacity: 0;
+    background-color: rgba(232, 221, 221, 0);
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s ease;
+} 
+
+.modal.show {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-dialog {
+    margin: 1.75rem auto;
+    max-width: 500px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal.show .modal-dialog {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.modal-backdrop {
+    display: none !important;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    /* box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175); */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* background: var(--light); */
+    background-color: #fff;
+    overflow: hidden;
+}
+
 </style>
 {% endblock %}
 
@@ -104,22 +190,28 @@
                                 </div>
                                 
                                 <!-- Delete Expense Modal -->
-                                <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog">
+                                <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
-                                            <div class="modal-header">
+                                            <div class="modal-header bg-light">
                                                 <h5 class="modal-title">Delete Expense</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <p>Are you sure you want to delete this expense?</p>
-                                                <p><strong>Description:</strong> {{ expense.description }}</p>
-                                                <p><strong>Amount:</strong> ₹{{ expense.amount|round(2) }}</p>
+                                                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+                                                <p><strong>Expense Details:</strong></p>
+                                                <ul class="list-unstyled">
+                                                    <li class="mb-2"><i class="fas fa-file-alt me-2"></i>{{ expense.description }}</li>
+                                                    <li><i class="fas fa-money-bill me-2"></i>₹{{ expense.amount|round(2) }}</li>
+                                                </ul>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST">
-                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="fas fa-trash me-2"></i>Delete Expense
+                                                    </button>
                                                 </form>
                                             </div>
                                         </div>
