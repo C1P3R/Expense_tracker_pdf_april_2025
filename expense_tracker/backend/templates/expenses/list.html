@@ -1,119 +1,118 @@
 {% extends "base.html" %}
 
-{% block title %}Expenses for {{ trip.name }} - Trip Expense Tracker{% endblock %}
+{% block title %}Expenses - {{ trip.name }}{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h1 class="mb-2">Expenses</h1>
-        <p class="text-muted">
-            <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}">{{ trip.name }}</a>
-            <i class="fas fa-calendar ms-3 me-1"></i>
-            {{ trip.start_date.strftime('%d %b %Y') }} - {{ trip.end_date.strftime('%d %b %Y') }}
-        </p>
+<div class="container py-4">
+    <!-- Header with Back Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}" class="btn btn-outline-primary btn-sm me-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Trip
+            </a>
+            <h1 class="h3 mb-0">{{ trip.name }} - Expenses</h1>
+        </div>
+        <a href="{{ url_for('expenses.add_expense', trip_id=trip.id) }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-2"></i>Add Expense
+        </a>
     </div>
-    <div class="col-md-4 text-end">
+
+    {% if expenses %}
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">All Expenses</h5>
+                <span class="badge bg-light text-dark">Total: ₹{{ trip.calculate_total_expenses()|round(2) }}</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Paid By</th>
+                            <th>Split Method</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr>
+                            <td>{{ expense.date.strftime('%d %b %Y') }}</td>
+                            <td>{{ expense.description }}</td>
+                            <td>₹{{ expense.amount|round(2) }}</td>
+                            <td>
+                                {% if expense.payer_id == current_user.id %}
+                                <span class="badge bg-primary">You</span>
+                                {% else %}
+                                {{ user_map.get(expense.payer_id|string, 'Unknown') }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if expense.split_method == 'equal' %}
+                                <span class="badge bg-info">Equal</span>
+                                {% elif expense.split_method == 'exact' %}
+                                <span class="badge bg-warning">Exact</span>
+                                {% elif expense.split_method == 'itemized' %}
+                                <span class="badge bg-success">Itemized</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('expenses.view_expense', trip_id=trip.id, expense_id=expense.id) }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if expense.payer_id == current_user.id or trip.admin_id == current_user.id %}
+                                    <a href="{{ url_for('expenses.edit_expense', trip_id=trip.id, expense_id=expense.id) }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ expense.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Delete Expense Modal -->
+                                <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Delete Expense</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete this expense?</p>
+                                                <p><strong>Description:</strong> {{ expense.description }}</p>
+                                                <p><strong>Amount:</strong> ₹{{ expense.amount|round(2) }}</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center p-5 bg-light rounded">
+        <h3 class="mb-3">No expenses yet</h3>
+        <p class="mb-4">Start by adding your first expense to this trip.</p>
         <a href="{{ url_for('expenses.add_expense', trip_id=trip.id) }}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Add Expense
         </a>
     </div>
+    {% endif %}
 </div>
-
-{% if expenses %}
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">All Expenses</h5>
-            <span class="badge bg-light text-dark">Total: ₹{{ trip.calculate_total_expenses()|round(2) }}</span>
-        </div>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Paid By</th>
-                        <th>Split Method</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for expense in expenses %}
-                    <tr>
-                        <td>{{ expense.date.strftime('%d %b %Y') }}</td>
-                        <td>{{ expense.description }}</td>
-                        <td>₹{{ expense.amount|round(2) }}</td>
-                        <td>
-                            {% if expense.payer_id == current_user.id %}
-                            <span class="badge bg-primary">You</span>
-                            {% else %}
-                            {{ user_map.get(expense.payer_id|string, 'Unknown') }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if expense.split_method == 'equal' %}
-                            <span class="badge bg-info">Equal</span>
-                            {% elif expense.split_method == 'exact' %}
-                            <span class="badge bg-warning">Exact</span>
-                            {% elif expense.split_method == 'itemized' %}
-                            <span class="badge bg-success">Itemized</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ url_for('expenses.view_expense', trip_id=trip.id, expense_id=expense.id) }}" class="btn btn-outline-primary">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                {% if expense.payer_id == current_user.id or trip.admin_id == current_user.id %}
-                                <a href="{{ url_for('expenses.edit_expense', trip_id=trip.id, expense_id=expense.id) }}" class="btn btn-outline-primary">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ expense.id }}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Delete Expense Modal -->
-                            <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Delete Expense</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p>Are you sure you want to delete this expense?</p>
-                                            <p><strong>Description:</strong> {{ expense.description }}</p>
-                                            <p><strong>Amount:</strong> ₹{{ expense.amount|round(2) }}</p>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST">
-                                                <button type="submit" class="btn btn-danger">Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% else %}
-<div class="text-center p-5 bg-light rounded">
-    <h3 class="mb-3">No expenses yet</h3>
-    <p class="mb-4">Start by adding your first expense to this trip.</p>
-    <a href="{{ url_for('expenses.add_expense', trip_id=trip.id) }}" class="btn btn-primary">
-        <i class="fas fa-plus me-2"></i>Add Expense
-    </a>
-</div>
-{% endif %}
 {% endblock %}

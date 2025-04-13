@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Trip Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header with Back Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-primary btn-sm me-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Profile
+            </a>
+            <h1 class="h3 mb-0">My Statistics</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Summary Cards -->
+        <div class="col-md-12 mb-4">
+            <div class="row g-3">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="avatar-circle bg-primary bg-opacity-10">
+                                        <i class="fas fa-suitcase text-primary"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h6 class="card-subtitle text-muted">Total Trips</h6>
+                                    <h2 class="card-title mb-0">{{ total_trips }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="avatar-circle bg-success bg-opacity-10">
+                                        <i class="fas fa-receipt text-success"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h6 class="card-subtitle text-muted">Total Expenses</h6>
+                                    <h2 class="card-title mb-0">{{ total_expenses }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="avatar-circle bg-info bg-opacity-10">
+                                        <i class="fas fa-money-bill-wave text-info"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h6 class="card-subtitle text-muted">Total Spent</h6>
+                                    <h2 class="card-title mb-0">₹{{ total_spent|round(2) }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="avatar-circle bg-warning bg-opacity-10">
+                                        <i class="fas fa-users text-warning"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h6 class="card-subtitle text-muted">Trip Partners</h6>
+                                    <h2 class="card-title mb-0">{{ total_partners }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Trips -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Recent Trips</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_trips %}
+                    <div class="list-group list-group-flush">
+                        {% for trip in recent_trips %}
+                        <a href="{{ url_for('trips.view_trip', trip_id=trip.id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ trip.name }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        {{ trip.start_date.strftime('%d %b %Y') }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">₹{{ trip.total_expenses|round(2) }}</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-suitcase fa-3x mb-3"></i>
+                        <p>No trips yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Expenses -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Recent Expenses</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_expenses %}
+                    <div class="list-group list-group-flush">
+                        {% for expense in recent_expenses %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ expense.description }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        {{ expense.date.strftime('%d %b %Y') }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-success rounded-pill">₹{{ expense.amount|round(2) }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-receipt fa-3x mb-3"></i>
+                        <p>No expenses yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Spending Chart -->
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Monthly Spending</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlySpendingChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('monthlySpendingChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ monthly_labels|tojson }},
+            datasets: [{
+                label: 'Monthly Spending',
+                data: {{ monthly_spending|tojson }},
+                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '₹' + context.parsed.y;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %} 

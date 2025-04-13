@@ -1,49 +1,222 @@
 {% extends "base.html" %}
 
-{% block title %}User Profile{% endblock %}
+{% block title %}Profile - Trip Expense Tracker{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container py-4">
+    <!-- Header with Back Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-primary btn-sm me-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <h1 class="h3 mb-0">Profile Settings</h1>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger btn-sm">
+            <i class="fas fa-sign-out-alt me-2"></i>Logout
+        </a>
+    </div>
+
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">User Profile</h4>
+        <!-- Profile Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="avatar-circle mb-3 mx-auto">
+                        {% if current_user.profile_photo %}
+                        <img src="{{ current_user.profile_photo }}" alt="{{ current_user.name }}" class="rounded-circle img-fluid profile-photo">
+                        {% else %}
+                        <i class="fas fa-user-circle fa-4x text-primary"></i>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1">{{ current_user.name }}</h5>
+                    <p class="text-muted mb-3">{{ current_user.email }}</p>
+                    {% if current_user.bio %}
+                    <p class="mb-3">{{ current_user.bio }}</p>
+                    {% endif %}
+                    <div class="d-grid">
+                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </button>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <h5>Personal Information</h5>
-                            <hr>
-                            <dl class="row">
-                                <dt class="col-sm-3">Name:</dt>
-                                <dd class="col-sm-9">{{ user.name }}</dd>
-                                
-                                <dt class="col-sm-3">Email:</dt>
-                                <dd class="col-sm-9">{{ user.email }}</dd>
-                                
-                                <dt class="col-sm-3">Joined:</dt>
-                                <dd class="col-sm-9">{{ user.created_at.strftime('%d %B %Y') }}</dd>
-                                
-                                <dt class="col-sm-3">Last Login:</dt>
-                                <dd class="col-sm-9">{{ user.last_seen.strftime('%d %B %Y %H:%M') if user.last_seen else 'Not available' }}</dd>
-                            </dl>
+            </div>
+        </div>
+
+        <!-- Stats Card -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4">Account Overview</h5>
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <a href="{{ url_for('auth.statistics') }}" class="text-decoration-none">
+                                <div class="p-3 bg-primary bg-opacity-10 rounded-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="stat-icon bg-primary bg-opacity-25 rounded-circle p-3 me-3">
+                                            <i class="fas fa-suitcase text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="h5 mb-1">{{ total_trips }}</h3>
+                                            <p class="text-muted small mb-0">Total Trips</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <a href="{{ url_for('auth.statistics') }}" class="text-decoration-none">
+                                <div class="p-3 bg-success bg-opacity-10 rounded-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="stat-icon bg-success bg-opacity-25 rounded-circle p-3 me-3">
+                                            <i class="fas fa-receipt text-success"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="h5 mb-1">{{ total_expenses }}</h3>
+                                            <p class="text-muted small mb-0">Total Expenses</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
                     </div>
-                    
-                    <div class="row mt-4">
-                        <div class="col-md-12">
-                            <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">
-                                <i class="fas fa-user-edit me-2"></i>Edit Profile
-                            </a>
-                            <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-primary ms-2">
-                                <i class="fas fa-key me-2"></i>Change Password
-                            </a>
-                        </div>
+                </div>
+            </div>
+
+            <!-- Security Card -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4">Security Settings</h5>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('auth.edit_profile') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" value="{{ current_user.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="{{ current_user.email }}" readonly disabled>
+                        <small class="text-muted">Email cannot be changed</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-control" name="bio" rows="3">{{ current_user.bio or '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Profile Photo</label>
+                        <input type="file" class="form-control" name="profile_photo" accept="image/*">
+                        {% if current_user.profile_photo %}
+                        <div class="mt-2">
+                            <img src="{{ current_user.profile_photo }}" alt="Current profile photo" class="img-thumbnail" style="max-height: 100px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('auth.change_password') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" class="form-control" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" name="confirm_password" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    background-opacity: 0.1;
+    color: var(--primary-color);
+    overflow: hidden;
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .stat-icon i {
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}

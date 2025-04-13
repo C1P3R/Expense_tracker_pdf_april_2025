@@ -8,6 +8,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
     password_hash = db.Column(db.String(128))
+    profile_photo = db.Column(db.String(255), nullable=True)  # Path to profile photo
+    bio = db.Column(db.Text, nullable=True)  # Short bio or description
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, default=False)
