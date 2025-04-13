@@ -2,6 +2,104 @@
 
 {% block title %}{{ expense.description }} - Trip Expense Tracker{% endblock %}
 
+{% block styles %}
+<style>
+/* Modal Styles */
+.modal {
+    opacity: 0;
+    display: none;
+    transition: opacity 0.3s ease-in-out !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.modal.show {
+    opacity: 1;
+    display: block;
+}
+
+.modal-backdrop {
+    opacity: 0;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease-in-out !important;
+}
+
+.modal-backdrop.show {
+    opacity: 1;
+    display: block;
+}
+
+.modal-dialog {
+    transition: transform 0.3s ease-in-out !important;
+    transform: translateY(-20px);
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0);
+}
+
+.modal-content {
+    border: 0;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: var(--light);
+    transition: all 0.3s ease-in-out !important;
+    position: relative;
+    z-index: 1050;
+}
+</style>
+{% endblock %}
+
+{% block styles %}
+<style>
+/* Modal Styles */
+.modal {
+    opacity: 0;
+    display: none;
+    transition: opacity 0.3s ease-in-out !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.modal.show {
+    opacity: 1;
+    display: block;
+}
+
+.modal-backdrop {
+    opacity: 0;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease-in-out !important;
+}
+
+.modal-backdrop.show {
+    opacity: 1;
+    display: block;
+}
+
+.modal-dialog {
+    transition: transform 0.3s ease-in-out !important;
+    transform: translateY(-20px);
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0);
+}
+
+.modal-content {
+    border: 0;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: var(--light);
+    transition: all 0.3s ease-in-out !important;
+    position: relative;
+    z-index: 1050;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-8">
@@ -304,32 +402,73 @@
 </div>
 
 <!-- Delete Expense Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete Expense</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title fw-bold text-gradient">Delete Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <p>Are you sure you want to delete this expense?</p>
                 <p class="text-danger"><strong>This action cannot be undone.</strong></p>
                 <p><strong>Expense Details:</strong></p>
-                <ul>
-                    <li>Description: {{ expense.description }}</li>
-                    <li>Amount: ₹{{ expense.amount|round(2) }}</li>
-                    <li>Date: {{ expense.date.strftime('%d %b %Y') }}</li>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-file-alt me-2"></i>{{ expense.description }}</li>
+                    <li class="mb-2"><i class="fas fa-money-bill me-2"></i>₹{{ expense.amount|round(2) }}</li>
+                    <li><i class="fas fa-calendar me-2"></i>{{ expense.date.strftime('%d %b %Y') }}</li>
                 </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-2"></i>Delete Expense
-                    </button>
-                </form>
+                <div class="mt-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Delete Expense
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all modal elements
+    const modals = document.querySelectorAll('.modal');
+    
+    // Add event listeners for modal show/hide
+    modals.forEach(modal => {
+        // Get the modal's Bootstrap instance
+        const bsModal = new bootstrap.Modal(modal);
+        
+        // Add show event listener
+        modal.addEventListener('show.bs.modal', function(e) {
+            // Prevent any immediate display
+            this.style.display = 'block';
+            this.style.opacity = '0';
+            
+            // Force reflow
+            const reflow = this.offsetHeight;
+            
+            // Start transition
+            requestAnimationFrame(() => {
+                this.style.opacity = '1';
+            });
+        });
+        
+        // Add hide event listener
+        modal.addEventListener('hide.bs.modal', function(e) {
+            // Prevent any immediate display
+            this.style.opacity = '0';
+            
+            // Wait for transition to complete
+            setTimeout(() => {
+                this.style.display = 'none';
+            }, 300); // Match transition duration
+        });
+    });
+});
+</script>
 {% endblock %}

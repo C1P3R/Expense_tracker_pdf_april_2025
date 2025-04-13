@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
-from werkzeug.utils import secure_filename
 from expense_tracker.backend.models.user import User
 from expense_tracker.backend.models.trip import Trip
 from expense_tracker.backend.models.expense import Expense
@@ -9,8 +8,6 @@ from expense_tracker.backend.database import db
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from collections import defaultdict
-import os
-import uuid
 
 bp = Blueprint('auth', __name__)
 
@@ -97,41 +94,14 @@ def profile():
 def edit_profile():
     if request.method == 'POST':
         name = request.form.get('name')
-        bio = request.form.get('bio')
         
         # Validate input
         if not name:
             flash('Name is required', 'error')
             return render_template('auth/edit_profile.html')
         
-        # Update user profile
+        # Update user profile (email cannot be changed)
         current_user.name = name
-        current_user.bio = bio
-        
-        # Handle profile photo upload
-        if 'profile_photo' in request.files:
-            profile_photo = request.files['profile_photo']
-            
-            if profile_photo and profile_photo.filename:
-                # Generate a secure filename with UUID to avoid conflicts
-                filename = secure_filename(profile_photo.filename)
-                file_extension = os.path.splitext(filename)[1]
-                unique_filename = f"{uuid.uuid4()}{file_extension}"
-                
-                # Define the upload path
-                upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
-                                           '../static/uploads/profile_photos')
-                
-                # Ensure the upload directory exists
-                os.makedirs(upload_folder, exist_ok=True)
-                
-                # Save the file
-                file_path = os.path.join(upload_folder, unique_filename)
-                profile_photo.save(file_path)
-                
-                # Update the user's profile photo path
-                current_user.profile_photo = f"/static/uploads/profile_photos/{unique_filename}"
-        
         db.session.commit()
         
         flash('Profile updated successfully', 'success')

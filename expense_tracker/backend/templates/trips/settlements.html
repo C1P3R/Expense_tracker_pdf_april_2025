@@ -11,20 +11,20 @@
                 <i class="fas fa-arrow-left me-2"></i>Back to Trip
             </a>
             <h1 class="h3 mb-0">{{ trip.name }} - Settlements</h1>
-        </div>
+    </div>
         <div>
             <a href="{{ url_for('trips.export_pdf', trip_id=trip.id) }}" class="btn btn-primary btn-sm">
                 <i class="fas fa-download me-2"></i>Download PDF
-            </a>
-        </div>
+        </a>
     </div>
+</div>
 
     <!-- Balances Card -->
     <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
+            <div class="card-header bg-primary text-white">
             <h5 class="card-title mb-0">Current Balances</h5>
-        </div>
-        <div class="card-body">
+            </div>
+            <div class="card-body">
             <div class="row">
                 {% for user_id, balance in balances.items() %}
                 <div class="col-md-6 col-lg-4 mb-3">
@@ -32,23 +32,23 @@
                         <div>
                             <h6 class="mb-1">{{ user_map.get(user_id|string, 'Unknown') }}</h6>
                             <span class="text-muted">Balance</span>
-                        </div>
+                </div>
                         <span class="h5 mb-0 {% if balance > 0 %}text-success{% elif balance < 0 %}text-danger{% else %}text-muted{% endif %}">
                             ₹{{ balance|round(2) }}
                         </span>
-                    </div>
+                </div>
                 </div>
                 {% endfor %}
-            </div>
         </div>
     </div>
+</div>
 
     <!-- Settlements Card -->
-    <div class="card">
-        <div class="card-header bg-primary text-white">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
             <h5 class="card-title mb-0">Settlement Plan</h5>
-        </div>
-        <div class="card-body">
+            </div>
+            <div class="card-body">
             {% if settlements %}
             <div class="list-group">
                 {% for settlement in settlements %}
@@ -71,7 +71,7 @@
                 <h5>No settlements needed!</h5>
                 <p class="text-muted mb-0">All balances are settled.</p>
             </div>
-            {% endif %}
+                                    {% endif %}
         </div>
     </div>
 </div>

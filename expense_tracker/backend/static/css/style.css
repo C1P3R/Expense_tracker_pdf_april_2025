@@ -464,7 +464,7 @@ img {
 }
 
 .dashboard-stat-card h3 {
-    font-size: 1.5rem;
+        font-size: 1.5rem;
     font-weight: 600;
 }
 
@@ -511,4 +511,54 @@ img {
     .summary-stat i {
         font-size: 1.25rem !important;
     }
+}
+
+/* Modal Styles */
+.modal.fade {
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.2s ease-in-out;
+}
+
+.modal.fade.show {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal.fade .modal-dialog {
+    transform: scale(0.95) translateY(0);
+    opacity: 0;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+    margin: 1.75rem auto;
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 3.5rem);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+.modal.fade.show .modal-dialog {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin: auto;
+    width: 100%;
+    max-width: 500px;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
 }
