@@ -161,6 +161,8 @@
                             <td>
                                 {% if expense.payer_id == current_user.id %}
                                 <span class="badge bg-primary">You</span>
+                                {% elif expense.payer_id == 'group_everyone' %}
+                                <span class="badge bg-primary">EVERYONE (GROUP PAYMENT)</span>
                                 {% else %}
                                 {{ user_map.get(expense.payer_id|string, 'Unknown') }}
                                 {% endif %}
