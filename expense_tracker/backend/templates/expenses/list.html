@@ -64,13 +64,13 @@
 
 }
 */
-.modal-header {
+/* .modal-header {
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .modal-footer {
     border-top: 1px solid rgba(0, 0, 0, 0.05);
-} 
+}  */
 
 .modal {
     display: none;
@@ -86,32 +86,32 @@
     visibility: visible;
 }
 
-.modal-dialog {
+/* .modal-dialog {
     margin: 1.75rem auto;
     max-width: 500px;
     opacity: 0;
     transform: scale(0.95);
     transition: opacity 0.3s ease, transform 0.3s ease;
-}
+} */
 
-.modal.show .modal-dialog {
+/* .modal.show .modal-dialog {
     opacity: 1;
     transform: scale(1);
-}
+} */
 
 .modal-backdrop {
     display: none !important;
 }
-
+/* 
 .modal-content {
     border: none;
     border-radius: 15px;
     /* box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175); */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
     /* background: var(--light); */
-    background-color: #fff;
-    overflow: hidden;
-}
+    /* background-color: #fff; */
+    /* overflow: hidden; */
+/* } */
 
 </style>
 {% endblock %}
@@ -190,10 +190,10 @@
                                 </div>
                                 
                                 <!-- Delete Expense Modal -->
-                                <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1">
+                                <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="0">
                                     <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-light">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header border-0 bg-light">
                                                 <h5 class="modal-title">Delete Expense</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
