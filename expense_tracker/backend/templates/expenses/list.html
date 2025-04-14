@@ -164,7 +164,18 @@
                                 {% elif expense.payer_id == 'group_everyone' %}
                                 <span class="badge bg-primary">EVERYONE (GROUP PAYMENT)</span>
                                 {% else %}
-                                {{ user_map.get(expense.payer_id|string, 'Unknown') }}
+                                <span class="badge bg-info">
+                                    {% if user_map.get(expense.payer_id|string) %}
+                                        {{ user_map.get(expense.payer_id|string) }}
+                                    {% else %}
+                                        {% set payer_name = expense.payer_id|string %}
+                                        {% if payer_name.startswith('unregistered_') %}
+                                            {{ payer_name|replace('unregistered_', '') }} (Unregistered)
+                                        {% else %}
+                                            {{ payer_name }} (Unregistered)
+                                        {% endif %}
+                                    {% endif %}
+                                </span>
                                 {% endif %}
                             </td>
                             <td>
