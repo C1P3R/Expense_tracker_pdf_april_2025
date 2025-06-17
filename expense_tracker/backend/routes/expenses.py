@@ -326,6 +326,8 @@ def view_expense(trip_id, expense_id):
             payer = User.query.get(int(expense.payer_id))
             if payer:
                 payer_info = {'id': str(payer.id), 'name': payer.name, 'type': 'registered'}
+            elif payer:
+                payer_info = {'id': str(payer.id), 'name': payer.name, 'type': 'unregistered'}
             else:
                 # Unknown user ID
                 payer_info = {'id': payer_id_str, 'name': 'Unknown', 'type': 'unknown'}

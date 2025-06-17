@@ -71,15 +71,15 @@
                                 <a href="{{ url_for('expenses.edit_expense', trip_id=trip.id, expense_id=expense.id) }}" class="btn btn-outline-primary">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ expense.id }}">
+                                <!-- <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ expense.id }}">
                                     <i class="fas fa-trash"></i>
-                                </button>
+                                </button> -->
                                 {% endif %}
                             </div>
                             
                             <!-- Delete Expense Modal -->
-                            <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog">
+                            <div class="modal fade custom-modal" id="deleteModal{{ expense.id }}" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered position-fixed">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title">Delete Expense</h5>
@@ -92,13 +92,13 @@
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST">
+                                            <form action="{{ url_for('expenses.delete_expense', trip_id=trip.id, expense_id=expense.id) }}" method="POST" class="d-inline">
                                                 <button type="submit" class="btn btn-danger">Delete</button>
                                             </form>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> 
                         </td>
                     </tr>
                     {% endfor %}

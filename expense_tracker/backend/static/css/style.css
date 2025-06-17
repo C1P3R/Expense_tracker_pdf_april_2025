@@ -381,6 +381,7 @@ img {
 }
 
 /* Custom Scrollbar */
+/*
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -398,6 +399,7 @@ img {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary-color);
 }
+*/
 
 /* Responsive Layout Adjustments */
 @media (min-width: 768px) and (max-width: 991px) {
@@ -429,4 +431,37 @@ img {
     .trip-actions .btn {
         margin: 0 0.25rem;
     }
+}
+
+.modal {
+    pointer-events: none;
+}
+
+.modal.show {
+    pointer-events: auto;
+}
+
+.modal-dialog {
+    margin: 1.75rem auto;
+    transform: none !important;
+    transition: none !important;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+}
+
+.modal-backdrop {
+    will-change: opacity;
+    backdrop-filter: blur(2px);
+}
+
+body.modal-open {
+    padding-right: 0 !important;
+    overflow: hidden;
 }
